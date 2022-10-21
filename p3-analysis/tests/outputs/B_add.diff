@@ -1,0 +1,19 @@
+--- outputs/B_add.txt	2022-10-19 16:01:30.605498518 -0400
++++ expected/B_add.txt	2022-09-23 09:59:29.000000000 -0400
+@@ -1,2 +1,14 @@
+-Invalid location name 'a' on line 4
+-Invalid location name 'a' on line 5
++Program [line 1]
++SYM TABLE:
++ print_int : (int) -> void
++ print_bool : (bool) -> void
++ print_str : (str) -> void
++ main : () -> int
++
++  FuncDecl name="main" return_type=int parameters={} [line 1]
++  SYM TABLE:
++
++    Block [line 2]
++    SYM TABLE:
++     a : int
++

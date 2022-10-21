@@ -1,0 +1,2 @@
+Invalid location name 'a' on line 4
+Invalid location name 'a' on line 5
