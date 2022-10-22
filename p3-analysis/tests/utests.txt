@@ -1,6 +1,7 @@
 Running suite(s): Default
-46%: Checks: 13, Failures: 6, Errors: 1
-public.c:18:F:Public:C_assign:0: Assertion 'valid_program("def int main () { " "int i; i = 3; return 0;" " }")' failed
+ERROR: No 'type' attribute
+ERROR: No 'type' attribute
+53%: Checks: 13, Failures: 5, Errors: 1
 public.c:28:F:Public:C_invalid_break:0: Assertion 'invalid_program("def int main () { " "break; return 0;" " }")' failed
 public.c:30:F:Public:C_invalid_conditional:0: Assertion 'invalid_program("def int main() { if (1) { return 0; } }")' failed
 public.c:31:F:Public:B_invalid_dup_var_global:0: Assertion 'invalid_program("def int main () { " "int a; bool b; int a; return 0;" " }")' failed

@@ -145,6 +145,7 @@ int main(int argc, char** argv)
     ASTNode_free(tree);
     ErrorList_free(errors);
     errors = NULL;
+    system("dot -Tpng -o ast.png ast.dot");
 
     return EXIT_SUCCESS;
 }

@@ -1,0 +1,8 @@
+def int main()
+{
+    int i; 
+    bool b;
+    i = 3;
+    b = 3;
+    return 0;
+}

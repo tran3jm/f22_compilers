@@ -4,5 +4,7 @@
 #    <ARGS>     command-line arguments to test
 
 run_test    D_undefined_var             "inputs/undefined_var.decaf"
+run_test    C_basic_assignments         "inputs/basic_assign.decaf"
+run_test    C_invalid_basic_assignment  "inputs/basic_assign_invalid.decaf"
+run_test    C_invalid_array_size        "inputs/invalid_array_length.decaf"
 run_test    B_add                       "inputs/add.decaf"
-

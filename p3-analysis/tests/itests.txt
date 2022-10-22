@@ -1,4 +1,7 @@
 D_undefined_var                pass
+C_basic_assignments            pass
+C_invalid_basic_assignment     pass
+C_invalid_array_size           pass
 B_add                          FAIL (see outputs/B_add.diff for details)
 No memory leak found.
 ========================================

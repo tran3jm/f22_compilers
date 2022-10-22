@@ -8,6 +8,10 @@
 void AnalysisVisitor_check_vardecl(NodeVisitor* visitor, ASTNode* node);
 void AnalysisVisitor_check_location(NodeVisitor* visitor, ASTNode* node);
 void AnalysisVisitor_check_main(NodeVisitor* visitor, ASTNode* node);
+void AnalysisVisitor_assign_check(NodeVisitor* visitor, ASTNode* node);
+void AnalysisVisitor_literal_type(NodeVisitor* visitor, ASTNode* node);
+void AnalysisVisitor_literal_type_infer(NodeVisitor* visitor, ASTNode* node);
+void AnalysisVisitor_location_type_infer(NodeVisitor* visitor, ASTNode* node);
 
 /**
  * @brief State/data for static analysis visitor
@@ -96,11 +100,16 @@ ErrorList* analyze (ASTNode* tree)
     NodeVisitor* v = NodeVisitor_new();
     v->data = (void*)AnalysisData_new();
     v->dtor = (Destructor)AnalysisData_free;
-    v->previsit_vardecl = AnalysisVisitor_check_vardecl;
-    v->previsit_location = AnalysisVisitor_check_location;
-    v->postvisit_program = AnalysisVisitor_check_main;
 
     /* BOILERPLATE: TODO: register analysis callbacks */
+    v->previsit_literal = AnalysisVisitor_literal_type_infer;
+    v->previsit_location= AnalysisVisitor_location_type_infer;
+
+    v->postvisit_location = AnalysisVisitor_check_location;
+    v->postvisit_program = AnalysisVisitor_check_main;
+    v->postvisit_vardecl = AnalysisVisitor_check_vardecl;
+
+    v->postvisit_assignment = AnalysisVisitor_assign_check;
 
     /* perform analysis, save error list, clean up, and return errors */
     NodeVisitor_traverse(v, tree);
@@ -109,16 +118,53 @@ ErrorList* analyze (ASTNode* tree)
     return errors;
 }
 
+/**
+ * @brief Helper method to turn types into string for
+ * error messages.
+ * 
+ * @param x type to turn into string
+ * @return const char* type as string
+ */
+const char* infered_type_to_string(DecafType x) {
+    
+    switch(x)
+    {
+        case UNKNOWN:
+            return "unknown";
+        case INT:
+            return "int";
+        case BOOL:
+            return "bool";
+        case VOID:
+            return "void";
+        case STR:
+            return "string";
+        default:
+            return "invalid";
+    }
+    return "invalid";
+}
+
 void AnalysisVisitor_check_vardecl(NodeVisitor* visitor, ASTNode* node) {
     if (node->vardecl.type == VOID) {
         ErrorList_printf(ERROR_LIST, "Void variable '%s' on line %d", node->vardecl.name, node->source_line);
     }
+
+    if (node->vardecl.is_array && node->vardecl.array_length <= 0) {
+        ErrorList_printf(ERROR_LIST, "Array \'%s\' on line %d must have positive non-zero length", node->vardecl.name, node->source_line);
+    }
+}
+
+void AnalysisVisitor_location_type_infer(NodeVisitor* visitor, ASTNode* node) {
+    if (lookup_symbol_with_reporting(visitor, node, node->location.name)) {
+        SET_INFERRED_TYPE(lookup_symbol_with_reporting(visitor, node, node->location.name)->type);
+    } 
 }
 
 void AnalysisVisitor_check_location(NodeVisitor* visitor, ASTNode* node) {
-    if (lookup_symbol_with_reporting(visitor, node, node->location.name)) {
-        ErrorList_printf(ERROR_LIST, "Invalid location name '%s' on line %d", node->location.name, node->source_line);
-    }
+    // if (!lookup_symbol_with_reporting(visitor, node, node->location.name)) {
+    //     ErrorList_printf(ERROR_LIST, "Invalid location name '%s' on line %d", node->location.name, node->source_line);
+    // }
 }
 
 void AnalysisVisitor_check_main(NodeVisitor* visitor, ASTNode* node) {
@@ -126,3 +172,17 @@ void AnalysisVisitor_check_main(NodeVisitor* visitor, ASTNode* node) {
         ErrorList_printf(ERROR_LIST, "Program does not contain \'main\' function", node->funcdecl.name, node->source_line);
     }
 }
+
+void AnalysisVisitor_literal_type_infer(NodeVisitor* visitor, ASTNode* node) {
+    SET_INFERRED_TYPE(node->literal.type);
+}
+
+void AnalysisVisitor_assign_check(NodeVisitor* visitor, ASTNode* node) {
+    if (GET_INFERRED_TYPE(node->assignment.location) != GET_INFERRED_TYPE(node->assignment.value)) {
+        ErrorList_printf(ERROR_LIST, "Type mismatch: %s is incompatible with %s on line %d",
+            infered_type_to_string((GET_INFERRED_TYPE(node->assignment.location))), 
+            infered_type_to_string((GET_INFERRED_TYPE(node->assignment.value))),
+              node->source_line);
+    }
+}
+
