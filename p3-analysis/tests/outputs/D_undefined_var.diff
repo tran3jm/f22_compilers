@@ -1,5 +1,0 @@
---- outputs/D_undefined_var.txt	2022-10-23 22:00:59.183792358 -0400
-+++ expected/D_undefined_var.txt	2022-09-23 09:59:29.000000000 -0400
-@@ -1,2 +1 @@
--ERROR: No 'type' attribute
- Symbol 'a' undefined on line 3

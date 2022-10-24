@@ -1,2 +1,1 @@
-ERROR: No 'type' attribute
 Symbol 'a' undefined on line 3

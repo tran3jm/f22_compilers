@@ -1,15 +1,15 @@
-==231708== Memcheck, a memory error detector
-==231708== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==231708== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
-==231708== Command: ../decaf inputs/invalid_array_length.decaf
-==231708== 
+==550411== Memcheck, a memory error detector
+==550411== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==550411== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==550411== Command: ../decaf inputs/invalid_array_length.decaf
+==550411== 
 Array 'a' on line 3 must have positive non-zero length
-==231708== 
-==231708== HEAP SUMMARY:
-==231708==     in use at exit: 0 bytes in 0 blocks
-==231708==   total heap usage: 1,737 allocs, 1,737 frees, 205,660 bytes allocated
-==231708== 
-==231708== All heap blocks were freed -- no leaks are possible
-==231708== 
-==231708== For lists of detected and suppressed errors, rerun with: -s
-==231708== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==550411== 
+==550411== HEAP SUMMARY:
+==550411==     in use at exit: 0 bytes in 0 blocks
+==550411==   total heap usage: 1,737 allocs, 1,737 frees, 205,676 bytes allocated
+==550411== 
+==550411== All heap blocks were freed -- no leaks are possible
+==550411== 
+==550411== For lists of detected and suppressed errors, rerun with: -s
+==550411== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
