@@ -12,6 +12,9 @@ void AnalysisVisitor_assign_check(NodeVisitor* visitor, ASTNode* node);
 void AnalysisVisitor_literal_type(NodeVisitor* visitor, ASTNode* node);
 void AnalysisVisitor_literal_type_infer(NodeVisitor* visitor, ASTNode* node);
 void AnalysisVisitor_location_type_infer(NodeVisitor* visitor, ASTNode* node);
+void AnalysisVisitor_return_check(NodeVisitor* visitor, ASTNode* node);
+void AnalysisVisitor_break_continue_check(NodeVisitor* visitor, ASTNode* node);
+void AnalysisVisitor_check_conditional(NodeVisitor* visitor, ASTNode* node);
 
 /**
  * @brief State/data for static analysis visitor
@@ -102,14 +105,20 @@ ErrorList* analyze (ASTNode* tree)
     v->dtor = (Destructor)AnalysisData_free;
 
     /* BOILERPLATE: TODO: register analysis callbacks */
-    v->previsit_literal = AnalysisVisitor_literal_type_infer;
     v->previsit_location= AnalysisVisitor_location_type_infer;
+    v->previsit_literal = AnalysisVisitor_literal_type_infer;
 
     v->postvisit_location = AnalysisVisitor_check_location;
     v->postvisit_program = AnalysisVisitor_check_main;
     v->postvisit_vardecl = AnalysisVisitor_check_vardecl;
+    v->postvisit_conditional = AnalysisVisitor_check_conditional;
 
     v->postvisit_assignment = AnalysisVisitor_assign_check;
+
+    v->postvisit_return = AnalysisVisitor_return_check;
+
+    v->postvisit_break = AnalysisVisitor_break_continue_check;
+    v->postvisit_continue = AnalysisVisitor_break_continue_check;
 
     /* perform analysis, save error list, clean up, and return errors */
     NodeVisitor_traverse(v, tree);
@@ -118,31 +127,14 @@ ErrorList* analyze (ASTNode* tree)
     return errors;
 }
 
-/**
- * @brief Helper method to turn types into string for
- * error messages.
- * 
- * @param x type to turn into string
- * @return const char* type as string
- */
-const char* infered_type_to_string(DecafType x) {
-    
-    switch(x)
-    {
-        case UNKNOWN:
-            return "unknown";
-        case INT:
-            return "int";
-        case BOOL:
-            return "bool";
-        case VOID:
-            return "void";
-        case STR:
-            return "string";
-        default:
-            return "invalid";
+ASTNode* lookup_parent(ASTNode* node, NodeType type)
+{
+    /* traverse up the tree until we find a function declaration or reach the root */
+    while (node != NULL && node->type != type) {
+        node = (ASTNode*)ASTNode_get_attribute(node, "parent");
     }
-    return "invalid";
+    
+    return node;
 }
 
 void AnalysisVisitor_check_vardecl(NodeVisitor* visitor, ASTNode* node) {
@@ -156,15 +148,23 @@ void AnalysisVisitor_check_vardecl(NodeVisitor* visitor, ASTNode* node) {
 }
 
 void AnalysisVisitor_location_type_infer(NodeVisitor* visitor, ASTNode* node) {
-    if (lookup_symbol_with_reporting(visitor, node, node->location.name)) {
-        SET_INFERRED_TYPE(lookup_symbol_with_reporting(visitor, node, node->location.name)->type);
-    } 
+    Symbol* sym = lookup_symbol_with_reporting(visitor, node, node->location.name);
+    if (sym) {
+        SET_INFERRED_TYPE(sym->type);
+    }
+}
+ 
+void AnalysisVisitor_check_location(NodeVisitor* visitor, ASTNode* node) {
+    // lookup_symbol_with_reporting(visitor, node, node->location.name);
 }
 
-void AnalysisVisitor_check_location(NodeVisitor* visitor, ASTNode* node) {
-    // if (!lookup_symbol_with_reporting(visitor, node, node->location.name)) {
-    //     ErrorList_printf(ERROR_LIST, "Invalid location name '%s' on line %d", node->location.name, node->source_line);
-    // }
+void AnalysisVisitor_check_conditional(NodeVisitor* visitor, ASTNode* node) {
+    if (GET_INFERRED_TYPE(node->conditional.condition) != BOOL) {
+         ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
+            DecafType_to_string(GET_INFERRED_TYPE(node->conditional.condition)), 
+            DecafType_to_string(BOOL),
+              node->source_line);
+    }
 }
 
 void AnalysisVisitor_check_main(NodeVisitor* visitor, ASTNode* node) {
@@ -180,9 +180,31 @@ void AnalysisVisitor_literal_type_infer(NodeVisitor* visitor, ASTNode* node) {
 void AnalysisVisitor_assign_check(NodeVisitor* visitor, ASTNode* node) {
     if (GET_INFERRED_TYPE(node->assignment.location) != GET_INFERRED_TYPE(node->assignment.value)) {
         ErrorList_printf(ERROR_LIST, "Type mismatch: %s is incompatible with %s on line %d",
-            infered_type_to_string((GET_INFERRED_TYPE(node->assignment.location))), 
-            infered_type_to_string((GET_INFERRED_TYPE(node->assignment.value))),
+            DecafType_to_string((GET_INFERRED_TYPE(node->assignment.location))), 
+            DecafType_to_string((GET_INFERRED_TYPE(node->assignment.value))),
               node->source_line);
     }
 }
 
+void AnalysisVisitor_return_check(NodeVisitor* visitor, ASTNode* node) {
+    
+    if (GET_INFERRED_TYPE(node->funcreturn.value)) {
+        ASTNode* funcNode = lookup_parent(node, FUNCDECL);
+
+        if (funcNode->funcdecl.return_type != GET_INFERRED_TYPE(node->funcreturn.value)) {
+            ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
+                DecafType_to_string(funcNode->funcdecl.return_type), 
+                DecafType_to_string(GET_INFERRED_TYPE(node->funcreturn.value)),
+                node->source_line);
+        }
+    }
+}
+
+void AnalysisVisitor_break_continue_check(NodeVisitor* visitor, ASTNode* node) {
+    ASTNode* loopNode = lookup_parent(node, WHILELOOP);
+
+    if (loopNode == NULL) {
+        ErrorList_printf(ERROR_LIST, "Break outside of loop found on line %d",
+              node->source_line);
+    }
+}

@@ -1,4 +1,4 @@
-D_undefined_var                pass
+D_undefined_var                FAIL (see outputs/D_undefined_var.diff for details)
 C_basic_assignments            pass
 C_invalid_basic_assignment     pass
 C_invalid_array_size           pass
