@@ -19,6 +19,8 @@ void AnalysisVisitor_funcdecl_postvisit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_loop_previsit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_loop_postvisit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_program_postvisit(NodeVisitor *visitor, ASTNode *node);
+void AnalysisVisitor_block_previsit(NodeVisitor *visitor, ASTNode *node);
+void AnalysisVisitor_vardecl_previsit(NodeVisitor *visitor, ASTNode *node);
 
 /**
  * @brief State/data for static analysis visitor
@@ -31,9 +33,9 @@ typedef struct AnalysisData
     ErrorList *errors;
 
     /* BOILERPLATE: TODO: add any new desired state information (and clean it up in AnalysisData_free) */
-
     char *funcName;
     bool isInLoop;
+    SymbolList* currentSymbolList;
 
 } AnalysisData;
 
@@ -49,6 +51,7 @@ AnalysisData *AnalysisData_new()
     data->errors = ErrorList_new();
     data->funcName = "";
     data->isInLoop = false;
+    data->currentSymbolList = NULL;
 
     return data;
 }
@@ -119,6 +122,7 @@ ErrorList *analyze(ASTNode *tree)
     v->previsit_location = AnalysisVisitor_location_previsit;
     v->previsit_literal = AnalysisVisitor_literal_previsit;
     v->previsit_funcdecl = AnalysisVisitor_funcdecl_previsit;
+    v->previsit_vardecl = AnalysisVisitor_vardecl_previsit;
 
     /* Post visit methods */
     v->postvisit_location = AnalysisVisitor_location_postvisit;
@@ -149,6 +153,38 @@ ASTNode *lookup_parent(ASTNode *node, NodeType type)
     return node;
 }
 
+bool has_symbol(SymbolList* symbols, char* name) {
+    FOR_EACH(Symbol*, sym, symbols) {
+        if (strncmp(name, sym->name, MAX_ID_LEN) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void AnalysisVisitor_program_previsit(NodeVisitor *visitor, ASTNode *node)
+{
+    SymbolTable* st = ASTNode_get_attribute(node, "symbolTable");
+    DATA->currentSymbolList = st->local_symbols;
+}
+
+void AnalysisVisitor_funcdecl_previsit(NodeVisitor *visitor, ASTNode *node)
+{
+    // if (has_symbol(DATA->currentSymbolList, node->funcdecl.name)) {
+    //     ErrorList_printf(ERROR_LIST, "Bad %d",
+    //                      node->source_line);
+    // }
+    SymbolTable* st = ASTNode_get_attribute(node, "symbolTable");
+    DATA->currentSymbolList = st->local_symbols;
+    DATA->funcName = node->funcdecl.name;
+}
+
+void AnalysisVisitor_block_previsit(NodeVisitor *visitor, ASTNode *node)
+{
+    SymbolTable* st = ASTNode_get_attribute(node, "symbolTable");
+    DATA->currentSymbolList = st->local_symbols;
+}
+
 void AnalysisVisitor_vardecl_postvisit(NodeVisitor *visitor, ASTNode *node)
 {
     if (node->vardecl.type == VOID)
@@ -173,6 +209,13 @@ void AnalysisVisitor_location_previsit(NodeVisitor *visitor, ASTNode *node)
 
 void AnalysisVisitor_location_postvisit(NodeVisitor *visitor, ASTNode *node)
 {
+    Symbol* symbol = lookup_symbol(node, node->location.name);
+    if (symbol != NULL && symbol->symbol_type == ARRAY_SYMBOL && node->location.index == NULL)
+    {
+        ErrorList_printf(ERROR_LIST, "Array \'%s\' accessed without index on line %d",
+                         node->location.name,
+                         node->source_line);
+    }
     // lookup_symbol_with_reporting(visitor, node, node->location.name);
 }
 
@@ -240,11 +283,6 @@ void AnalysisVisitor_break_continue_postvisit(NodeVisitor *visitor, ASTNode *nod
     }
 }
 
-void AnalysisVisitor_funcdecl_previsit(NodeVisitor *visitor, ASTNode *node)
-{
-    DATA->funcName = node->funcdecl.name;
-}
-
 void AnalysisVisitor_funcdecl_postvisit(NodeVisitor *visitor, ASTNode *node)
 {
     DATA->funcName = "";
@@ -258,4 +296,12 @@ void AnalysisVisitor_loop_previsit(NodeVisitor *visitor, ASTNode *node)
 void AnalysisVisitor_loop_postvisit(NodeVisitor *visitor, ASTNode *node)
 {
     DATA->isInLoop = false;
+}
+
+void AnalysisVisitor_vardecl_previsit(NodeVisitor *visitor, ASTNode *node)
+{
+    // if (has_symbol(DATA->currentSymbolList, node->vardecl.name)) {
+    //     ErrorList_printf(ERROR_LIST, "Bad %d",
+    //                      node->source_line);
+    // }
 }
