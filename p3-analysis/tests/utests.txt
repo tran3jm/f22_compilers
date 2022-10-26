@@ -1,8 +1,2 @@
 Running suite(s): Default
-ERROR: No 'type' attribute
-ERROR: No 'type' attribute
-69%: Checks: 13, Failures: 3, Errors: 1
-public.c:31:F:Public:B_invalid_dup_var_global:0: Assertion 'invalid_program("def int main () { " "int a; bool b; int a; return 0;" " }")' failed
-public.c:33:F:Public:B_mismatched_parameters:0: Assertion 'invalid_program("def int main() { foo(true, true); return 0; } " "def void foo(int i, bool b) { return; } ")' failed
-public.c:35:F:Public:A_invalid_main_var:0: Assertion 'invalid_program("int main; def int foo(int a) { return 0; }")' failed
-private.c:5:E:Private:A_null_tree:0: (after this point) Received signal 11 (Segmentation fault)
+100%: Checks: 13, Failures: 0, Errors: 0

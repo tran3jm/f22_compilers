@@ -1,0 +1,9 @@
+def int main()
+{
+	return add(true, false);
+}
+
+def int add(int a, int b)
+{
+    return a + b;
+}

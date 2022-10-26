@@ -1,0 +1,9 @@
+int a[5];
+def int main()
+{
+    int b;
+	if (true) {
+        b = 1;
+    }
+	return b;
+}

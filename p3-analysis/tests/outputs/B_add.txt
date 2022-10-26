@@ -1,3 +1,0 @@
-ERROR: No 'type' attribute
-ERROR: No 'type' attribute
-Type mismatch: int is incompatible with ??? on line 4

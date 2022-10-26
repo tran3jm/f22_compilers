@@ -1,0 +1,1 @@
+Duplicate symbols named 'a' scope on line 1

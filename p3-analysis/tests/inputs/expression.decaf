@@ -1,0 +1,5 @@
+def int main() { 
+    int i; 
+    i = true + 4; 
+    return 0; 
+}
