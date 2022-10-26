@@ -1,16 +1,16 @@
-==173600== Memcheck, a memory error detector
-==173600== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==173600== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
-==173600== Command: ../decaf inputs/invalid_str_unary.decaf
-==173600== 
+==339179== Memcheck, a memory error detector
+==339179== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==339179== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==339179== Command: ../decaf inputs/invalid_str_unary.decaf
+==339179== 
 Symbol 'baz' undefined on line 3
 Type mismatch: int expected but str found on line 3
-==173600== 
-==173600== HEAP SUMMARY:
-==173600==     in use at exit: 0 bytes in 0 blocks
-==173600==   total heap usage: 1,830 allocs, 1,830 frees, 222,964 bytes allocated
-==173600== 
-==173600== All heap blocks were freed -- no leaks are possible
-==173600== 
-==173600== For lists of detected and suppressed errors, rerun with: -s
-==173600== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==339179== 
+==339179== HEAP SUMMARY:
+==339179==     in use at exit: 0 bytes in 0 blocks
+==339179==   total heap usage: 1,830 allocs, 1,830 frees, 222,964 bytes allocated
+==339179== 
+==339179== All heap blocks were freed -- no leaks are possible
+==339179== 
+==339179== For lists of detected and suppressed errors, rerun with: -s
+==339179== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

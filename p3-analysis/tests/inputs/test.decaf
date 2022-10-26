@@ -1,6 +1,9 @@
 int a[1];
+
 def int main()
 {
-    a = 5;
+    bool b;
+    b = true;
+    a[0] = b;
     return 5;
 }
