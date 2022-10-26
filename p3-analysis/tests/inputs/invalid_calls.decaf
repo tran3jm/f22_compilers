@@ -1,0 +1,11 @@
+int foo;
+
+def bool bar() {
+    return true || false;
+}
+
+def int main()
+{
+    bar = true;
+	return foo(1, true);
+}

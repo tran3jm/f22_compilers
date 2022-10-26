@@ -280,6 +280,10 @@ void AnalysisVisitor_location_postvisit(NodeVisitor *visitor, ASTNode *node)
         ErrorList_printf(ERROR_LIST, "Array \'%s\' accessed without index on line %d",
                          node->location.name,
                          node->source_line);
+    } else if (symbol != NULL && symbol->symbol_type == FUNCTION_SYMBOL) {
+        ErrorList_printf(ERROR_LIST, "Function \'%s\' accessed as a variable on line %d",
+                         node->location.name,
+                         node->source_line);
     }
     // lookup_symbol_with_reporting(visitor, node, node->location.name);
 }
@@ -442,6 +446,10 @@ void AnalysisVisitor_funccall_previsit(NodeVisitor *visitor, ASTNode *node)
     if (symbol == NULL)
     {
         ErrorList_printf(ERROR_LIST, "Program does not contain \'%s\' function", node->funccall.name, node->source_line);
+    } else if (symbol != NULL && symbol->symbol_type != FUNCTION_SYMBOL) {
+        ErrorList_printf(ERROR_LIST, "Invalid call to non-function \'%s\' on line %d",
+                         node->location.name,
+                         node->source_line);
     }
     SET_INFERRED_TYPE(symbol->type);
 }
