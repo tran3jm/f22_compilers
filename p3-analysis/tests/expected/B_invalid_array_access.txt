@@ -1,0 +1,2 @@
+Array 'a' accessed without index on line 4
+Array 'a' accessed without index on line 6

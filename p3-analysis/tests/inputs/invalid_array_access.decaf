@@ -2,5 +2,6 @@ int a[2];
 
 def int main () {
     a = 1;
+    a[4] = 5; 
     return a;
 }

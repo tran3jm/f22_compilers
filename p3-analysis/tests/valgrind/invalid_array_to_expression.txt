@@ -1,19 +1,20 @@
-==2844274== Memcheck, a memory error detector
-==2844274== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==2844274== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
-==2844274== Command: ../decaf inputs/invalid_array_to_expression.decaf
-==2844274== 
+==173675== Memcheck, a memory error detector
+==173675== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==173675== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==173675== Command: ../decaf inputs/invalid_array_to_expression.decaf
+==173675== 
 Array 'a' accessed without index on line 4
-Type mismatch: int is incompatible with str on line 4
-Type mismatch: bool is incompatible with int on line 4
-Type mismatch: str is incompatible with int on line 4
-Type mismatch: int is incompatible with int on line 4
-==2844274== 
-==2844274== HEAP SUMMARY:
-==2844274==     in use at exit: 0 bytes in 0 blocks
-==2844274==   total heap usage: 1,905 allocs, 1,905 frees, 241,128 bytes allocated
-==2844274== 
-==2844274== All heap blocks were freed -- no leaks are possible
-==2844274== 
-==2844274== For lists of detected and suppressed errors, rerun with: -s
-==2844274== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+Type mismatch: bool expected but str found on line 4
+Type mismatch: int expected but bool found on line 4
+Type mismatch: int expected but str found on line 4
+Type mismatch: bool expected but int found on line 4
+Type mismatch: bool expected but int found on line 4
+==173675== 
+==173675== HEAP SUMMARY:
+==173675==     in use at exit: 0 bytes in 0 blocks
+==173675==   total heap usage: 1,906 allocs, 1,906 frees, 241,392 bytes allocated
+==173675== 
+==173675== All heap blocks were freed -- no leaks are possible
+==173675== 
+==173675== For lists of detected and suppressed errors, rerun with: -s
+==173675== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

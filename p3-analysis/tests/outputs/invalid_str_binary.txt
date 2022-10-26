@@ -1,5 +1,3 @@
-ERROR: No 'type' attribute
-ERROR: No 'type' attribute
 Symbol 'baz' undefined on line 3
-Type mismatch: str is incompatible with str on line 3
-Type mismatch: ??? is incompatible with int on line 3
+Type mismatch: int expected but str found on line 3
+Type mismatch: int expected but str found on line 3

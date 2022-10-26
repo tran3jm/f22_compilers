@@ -315,12 +315,14 @@ void AnalysisVisitor_literal_previsit(NodeVisitor *visitor, ASTNode *node)
 
 void AnalysisVisitor_assign_postvisit(NodeVisitor *visitor, ASTNode *node)
 {
-    if (GET_INFERRED_TYPE(node->assignment.location) != GET_INFERRED_TYPE(node->assignment.value))
-    {
-        ErrorList_printf(ERROR_LIST, "Type mismatch: %s is incompatible with %s on line %d",
-                         DecafType_to_string((GET_INFERRED_TYPE(node->assignment.location))),
-                         DecafType_to_string((GET_INFERRED_TYPE(node->assignment.value))),
-                         node->source_line);
+    if (lookup_symbol(node, node->assignment.location->location.name)) {
+        if (GET_INFERRED_TYPE(node->assignment.location) != GET_INFERRED_TYPE(node->assignment.value))
+        {
+            ErrorList_printf(ERROR_LIST, "Type mismatch: %s is incompatible with %s on line %d",
+                            DecafType_to_string((GET_INFERRED_TYPE(node->assignment.location))),
+                            DecafType_to_string((GET_INFERRED_TYPE(node->assignment.value))),
+                            node->source_line);
+        }
     }
 }
 
@@ -344,14 +346,22 @@ void AnalysisVisitor_binaryop_postvisit(NodeVisitor *visitor, ASTNode *node)
     {
         case OROP: case ANDOP:
 
-            if (GET_INFERRED_TYPE(node->binaryop.left) != BOOL || GET_INFERRED_TYPE(node->binaryop.right) != BOOL) 
+            if (GET_INFERRED_TYPE(node->binaryop.left) != BOOL) 
             {
-
-                ErrorList_printf(ERROR_LIST, "Type mismatch: %s is incompatible with %s on line %d",
+                ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
+                                DecafType_to_string(BOOL),
                                 DecafType_to_string(GET_INFERRED_TYPE(node->binaryop.left)),
+                                node->source_line);
+            }
+
+            if (GET_INFERRED_TYPE(node->binaryop.right) != BOOL) 
+            {
+                ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
+                                DecafType_to_string(BOOL),
                                 DecafType_to_string(GET_INFERRED_TYPE(node->binaryop.right)),
                                 node->source_line);
             }
+            break;
             break;
 
         case EQOP: case NEQOP: 
@@ -367,16 +377,23 @@ void AnalysisVisitor_binaryop_postvisit(NodeVisitor *visitor, ASTNode *node)
         
         case LTOP: case LEOP: case GEOP: case GTOP: case ADDOP: case SUBOP: case MULOP: case DIVOP: case MODOP:
 
-            if (GET_INFERRED_TYPE(node->binaryop.left) != INT || GET_INFERRED_TYPE(node->binaryop.right) != INT) 
+            if (GET_INFERRED_TYPE(node->binaryop.left) != INT) 
             {
-                ErrorList_printf(ERROR_LIST, "Type mismatch: %s is incompatible with %s on line %d",
+                ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
+                                DecafType_to_string(INT),
                                 DecafType_to_string(GET_INFERRED_TYPE(node->binaryop.left)),
+                                node->source_line);
+            }
+
+            if (GET_INFERRED_TYPE(node->binaryop.right) != INT) 
+            {
+                ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
+                                DecafType_to_string(INT),
                                 DecafType_to_string(GET_INFERRED_TYPE(node->binaryop.right)),
                                 node->source_line);
             }
             break;
     }
-
 }
 
 void AnalysisVisitor_unaryop_previsit(NodeVisitor *visitor, ASTNode *node)
@@ -396,19 +413,19 @@ void AnalysisVisitor_unaryop_postvisit(NodeVisitor *visitor, ASTNode *node)
 {
     if (GET_INFERRED_TYPE(node) == INT && GET_INFERRED_TYPE(node->unaryop.child) != INT) 
     {
-        ErrorList_printf(ERROR_LIST, "Type mismatch: %s is incompatible with %s on line %d",
-                         DecafType_to_string(BOOL),
+        ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
+                         DecafType_to_string(INT),
                          DecafType_to_string((GET_INFERRED_TYPE(node->unaryop.child))),
                          node->source_line);
     }
 
     if (GET_INFERRED_TYPE(node) == BOOL && GET_INFERRED_TYPE(node->unaryop.child) != BOOL) {
-        ErrorList_printf(ERROR_LIST, "Type mismatch: %s is incompatible with %s on line %d",
-                         DecafType_to_string(INT),
+        ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
+                         DecafType_to_string(BOOL),
                          DecafType_to_string((GET_INFERRED_TYPE(node->unaryop.child))),
                          node->source_line);
     } 
-
+    
 }
 
 void AnalysisVisitor_return_postvisit(NodeVisitor *visitor, ASTNode *node)

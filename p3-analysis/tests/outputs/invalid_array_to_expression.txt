@@ -1,5 +1,6 @@
 Array 'a' accessed without index on line 4
-Type mismatch: int is incompatible with str on line 4
-Type mismatch: bool is incompatible with int on line 4
-Type mismatch: str is incompatible with int on line 4
-Type mismatch: int is incompatible with int on line 4
+Type mismatch: bool expected but str found on line 4
+Type mismatch: int expected but bool found on line 4
+Type mismatch: int expected but str found on line 4
+Type mismatch: bool expected but int found on line 4
+Type mismatch: bool expected but int found on line 4
