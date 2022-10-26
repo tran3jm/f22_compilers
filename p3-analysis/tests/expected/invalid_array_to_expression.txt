@@ -1,0 +1,6 @@
+Array 'a' accessed without index on line 4
+Type mismatch: bool expected but str found on line 4
+Type mismatch: int expected but bool found on line 4
+Type mismatch: int expected but str found on line 4
+Type mismatch: bool expected but int found on line 4
+Type mismatch: bool expected but int found on line 4

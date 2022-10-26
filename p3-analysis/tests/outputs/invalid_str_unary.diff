@@ -1,0 +1,9 @@
+--- outputs/invalid_str_unary.txt	2022-10-26 14:33:43.610539256 -0400
++++ expected/invalid_str_unary.txt	2022-10-26 14:23:23.868098818 -0400
+@@ -1,5 +1,2 @@
+-ERROR: No 'type' attribute
+-ERROR: No 'type' attribute
+ Symbol 'baz' undefined on line 3
+-Type mismatch: bool is incompatible with str on line 3
+-Type mismatch: ??? is incompatible with int on line 3
++Type mismatch: int expected but str found on line 3

@@ -1,0 +1,6 @@
+bool a[1];
+def int main()
+{
+    a = !"test" * 42 && "ok" / 43;
+    return 5;
+}

@@ -8,6 +8,10 @@ B_dup_func                     pass
 B_invalid_unaryop              pass
 B_invalid_cond_expression      pass
 p0                             pass
+invalid_calls                  pass
+invalid_str_unary              FAIL (see outputs/invalid_str_unary.diff for details)
+invalid_str_binary             FAIL (see outputs/invalid_str_binary.diff for details)
+invalid_array_to_expression    FAIL (see outputs/invalid_array_to_expression.diff for details)
 No memory leak found.
 ========================================
  NOTICE: THIS TESTSUITE IS INCOMPLETE.

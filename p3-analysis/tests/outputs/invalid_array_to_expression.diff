@@ -1,0 +1,13 @@
+--- outputs/invalid_array_to_expression.txt	2022-10-26 14:33:46.126565707 -0400
++++ expected/invalid_array_to_expression.txt	2022-10-26 14:32:08.485540213 -0400
+@@ -1,5 +1,6 @@
+ Array 'a' accessed without index on line 4
+-Type mismatch: int is incompatible with str on line 4
+-Type mismatch: bool is incompatible with int on line 4
+-Type mismatch: str is incompatible with int on line 4
+-Type mismatch: int is incompatible with int on line 4
++Type mismatch: bool expected but str found on line 4
++Type mismatch: int expected but bool found on line 4
++Type mismatch: int expected but str found on line 4
++Type mismatch: bool expected but int found on line 4
++Type mismatch: bool expected but int found on line 4

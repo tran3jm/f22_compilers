@@ -1,0 +1,3 @@
+Function 'bar' accessed as a variable on line 9
+Invalid call to non-function 'foo' on line 10
+Invalid number of function arguments on line 10

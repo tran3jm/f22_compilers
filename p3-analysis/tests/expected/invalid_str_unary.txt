@@ -1,0 +1,2 @@
+Symbol 'baz' undefined on line 3
+Type mismatch: int expected but str found on line 3

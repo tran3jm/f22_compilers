@@ -1,0 +1,5 @@
+Array 'a' accessed without index on line 4
+Type mismatch: int is incompatible with str on line 4
+Type mismatch: bool is incompatible with int on line 4
+Type mismatch: str is incompatible with int on line 4
+Type mismatch: int is incompatible with int on line 4
