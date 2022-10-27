@@ -1,16 +1,16 @@
-==1303734== Memcheck, a memory error detector
-==1303734== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==1303734== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
-==1303734== Command: ../decaf inputs/invalid_array_access.decaf
-==1303734== 
+==1719372== Memcheck, a memory error detector
+==1719372== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1719372== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==1719372== Command: ../decaf inputs/invalid_array_access.decaf
+==1719372== 
 Array 'a' accessed without index on line 4
 Array 'a' accessed without index on line 6
-==1303734== 
-==1303734== HEAP SUMMARY:
-==1303734==     in use at exit: 0 bytes in 0 blocks
-==1303734==   total heap usage: 1,808 allocs, 1,808 frees, 212,704 bytes allocated
-==1303734== 
-==1303734== All heap blocks were freed -- no leaks are possible
-==1303734== 
-==1303734== For lists of detected and suppressed errors, rerun with: -s
-==1303734== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==1719372== 
+==1719372== HEAP SUMMARY:
+==1719372==     in use at exit: 0 bytes in 0 blocks
+==1719372==   total heap usage: 1,808 allocs, 1,808 frees, 212,704 bytes allocated
+==1719372== 
+==1719372== All heap blocks were freed -- no leaks are possible
+==1719372== 
+==1719372== For lists of detected and suppressed errors, rerun with: -s
+==1719372== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

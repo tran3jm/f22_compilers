@@ -8,7 +8,6 @@
 void AnalysisVisitor_literal_previsit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_location_previsit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_vardecl_postvisit(NodeVisitor *visitor, ASTNode *node);
-void AnalysisVisitor_check_location(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_location_postvisit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_assign_postvisit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_return_postvisit(NodeVisitor *visitor, ASTNode *node);
@@ -28,6 +27,7 @@ void AnalysisVisitor_binaryop_previsit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_binaryop_postvisit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_funccall_previsit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_funccall_postvisit(NodeVisitor *visitor, ASTNode *node);
+void AnalysisVisitor_block_postvisit(NodeVisitor *visitor, ASTNode *node);
 
 /**
  * @brief State/data for static analysis visitor
@@ -44,6 +44,7 @@ typedef struct AnalysisData
     bool isInLoop;
     SymbolList* currentSymbolList;
     int scopeNum;
+    bool isInBlock;
 
 } AnalysisData;
 
@@ -61,6 +62,7 @@ AnalysisData *AnalysisData_new()
     data->isInLoop = false; // checking if visitor is currently lookiong at a loop
     data->currentSymbolList = NULL; // current list symbols
     data->scopeNum = 0; // scope for dups
+    data->isInBlock = false;
 
     return data;
 }
@@ -153,6 +155,7 @@ ErrorList *analyze(ASTNode *tree)
             v->postvisit_unaryop = AnalysisVisitor_unaryop_postvisit;
             v->postvisit_binaryop = AnalysisVisitor_binaryop_postvisit;
             v->postvisit_funccall = AnalysisVisitor_funccall_postvisit;
+            v->postvisit_block = AnalysisVisitor_block_postvisit;
 
             NodeVisitor_traverse(v, tree);
         } else {
@@ -250,6 +253,7 @@ void AnalysisVisitor_funcdecl_previsit(NodeVisitor *visitor, ASTNode *node)
  */
 void AnalysisVisitor_block_previsit(NodeVisitor *visitor, ASTNode *node)
 {
+    DATA->isInBlock = true;
     SymbolTable* st = ASTNode_get_attribute(node, "symbolTable");
     DATA->currentSymbolList = st->local_symbols;
 
@@ -390,6 +394,12 @@ void AnalysisVisitor_vardecl_postvisit(NodeVisitor *visitor, ASTNode *node)
     if (node->vardecl.is_array && node->vardecl.array_length <= 0)
     {
         ErrorList_printf(ERROR_LIST, "Array \'%s\' on line %d must have positive non-zero length", node->vardecl.name, node->source_line);
+    }
+
+    /* array variable must be declared globally */
+    else if (node->vardecl.is_array && DATA->isInBlock)
+    {
+        ErrorList_printf(ERROR_LIST, "Local variable \'%s\' on line %d cannot be an array", node->vardecl.name, node->source_line);
     }
     
 }
@@ -679,4 +689,15 @@ void AnalysisVisitor_funcdecl_postvisit(NodeVisitor *visitor, ASTNode *node)
 void AnalysisVisitor_loop_postvisit(NodeVisitor *visitor, ASTNode *node)
 {
     DATA->isInLoop = false;
+}
+
+/**
+ * @brief Postvisit for block node.
+ * 
+ * @param vistor Nodevisitor for block
+ * @param node Current node to look at
+ */
+void AnalysisVisitor_block_postvisit(NodeVisitor *visitor, ASTNode *node)
+{
+    DATA->isInBlock = false;
 }
