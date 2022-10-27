@@ -451,6 +451,16 @@ void AnalysisVisitor_program_postvisit(NodeVisitor *visitor, ASTNode *node)
     {
         ErrorList_printf(ERROR_LIST, "Program does not contain \'main\' function", node->funcdecl.name, node->source_line);
     }
+
+    else if (lookup_symbol(node, "main")->parameters->size != 0)
+    {
+        ErrorList_printf(ERROR_LIST, "\'main\' must take no parameters");
+    }
+
+    else if (lookup_symbol(node, "main")->type != INT)
+    {
+        ErrorList_printf(ERROR_LIST, "\'main\' must return an integer");
+    }
 }
 
 /**
@@ -558,7 +568,7 @@ void AnalysisVisitor_unaryop_postvisit(NodeVisitor *visitor, ASTNode *node)
                          DecafType_to_string((GET_INFERRED_TYPE(node->unaryop.child))),
                          node->source_line);
     }
-
+ 
     /* Checking if child type is bool if unary operator is ! */
     if (GET_INFERRED_TYPE(node) == BOOL && GET_INFERRED_TYPE(node->unaryop.child) != BOOL) {
         ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
