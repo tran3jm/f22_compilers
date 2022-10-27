@@ -1,15 +1,15 @@
-==1719847== Memcheck, a memory error detector
-==1719847== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==1719847== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
-==1719847== Command: ../decaf inputs/invalid_conditional.decaf
-==1719847== 
+==1786059== Memcheck, a memory error detector
+==1786059== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1786059== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==1786059== Command: ../decaf inputs/invalid_conditional.decaf
+==1786059== 
 Type mismatch: bool expected but int found on line 3
-==1719847== 
-==1719847== HEAP SUMMARY:
-==1719847==     in use at exit: 0 bytes in 0 blocks
-==1719847==   total heap usage: 1,693 allocs, 1,693 frees, 189,532 bytes allocated
-==1719847== 
-==1719847== All heap blocks were freed -- no leaks are possible
-==1719847== 
-==1719847== For lists of detected and suppressed errors, rerun with: -s
-==1719847== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==1786059== 
+==1786059== HEAP SUMMARY:
+==1786059==     in use at exit: 0 bytes in 0 blocks
+==1786059==   total heap usage: 1,693 allocs, 1,693 frees, 189,532 bytes allocated
+==1786059== 
+==1786059== All heap blocks were freed -- no leaks are possible
+==1786059== 
+==1786059== For lists of detected and suppressed errors, rerun with: -s
+==1786059== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
