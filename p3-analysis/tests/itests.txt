@@ -14,6 +14,7 @@ invalid_str_unary              pass
 invalid_str_binary             pass
 invalid_array_to_expression    pass
 invalid_conditional            pass
+invalid_main_type              FAIL (no expected output)
 No memory leak found.
 ========================================
  NOTICE: THIS TESTSUITE IS INCOMPLETE.

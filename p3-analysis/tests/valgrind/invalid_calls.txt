@@ -1,17 +1,17 @@
-==1124187== Memcheck, a memory error detector
-==1124187== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==1124187== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
-==1124187== Command: ../decaf inputs/invalid_calls.decaf
-==1124187== 
+==1131272== Memcheck, a memory error detector
+==1131272== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1131272== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==1131272== Command: ../decaf inputs/invalid_calls.decaf
+==1131272== 
 Function 'bar' accessed as a variable on line 9
 Invalid call to non-function 'foo' on line 10
 Invalid number of function arguments on line 10
-==1124187== 
-==1124187== HEAP SUMMARY:
-==1124187==     in use at exit: 0 bytes in 0 blocks
-==1124187==   total heap usage: 1,996 allocs, 1,996 frees, 250,908 bytes allocated
-==1124187== 
-==1124187== All heap blocks were freed -- no leaks are possible
-==1124187== 
-==1124187== For lists of detected and suppressed errors, rerun with: -s
-==1124187== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==1131272== 
+==1131272== HEAP SUMMARY:
+==1131272==     in use at exit: 0 bytes in 0 blocks
+==1131272==   total heap usage: 1,996 allocs, 1,996 frees, 250,908 bytes allocated
+==1131272== 
+==1131272== All heap blocks were freed -- no leaks are possible
+==1131272== 
+==1131272== For lists of detected and suppressed errors, rerun with: -s
+==1131272== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
