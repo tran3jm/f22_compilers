@@ -13,6 +13,7 @@ invalid_calls                  pass
 invalid_str_unary              pass
 invalid_str_binary             pass
 invalid_array_to_expression    pass
+invalid_conditional            pass
 No memory leak found.
 ========================================
  NOTICE: THIS TESTSUITE IS INCOMPLETE.

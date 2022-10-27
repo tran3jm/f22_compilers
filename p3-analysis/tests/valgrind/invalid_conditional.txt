@@ -1,0 +1,15 @@
+==1124508== Memcheck, a memory error detector
+==1124508== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1124508== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==1124508== Command: ../decaf inputs/invalid_conditional.decaf
+==1124508== 
+Type mismatch: bool expected but int found on line 3
+==1124508== 
+==1124508== HEAP SUMMARY:
+==1124508==     in use at exit: 0 bytes in 0 blocks
+==1124508==   total heap usage: 1,693 allocs, 1,693 frees, 189,532 bytes allocated
+==1124508== 
+==1124508== All heap blocks were freed -- no leaks are possible
+==1124508== 
+==1124508== For lists of detected and suppressed errors, rerun with: -s
+==1124508== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

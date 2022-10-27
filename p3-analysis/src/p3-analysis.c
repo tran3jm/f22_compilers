@@ -432,8 +432,8 @@ void AnalysisVisitor_conditional_postvisit(NodeVisitor *visitor, ASTNode *node)
     if (GET_INFERRED_TYPE(node->conditional.condition) != BOOL)
     {
         ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
-                         DecafType_to_string(GET_INFERRED_TYPE(node->conditional.condition)),
                          DecafType_to_string(BOOL),
+                         DecafType_to_string(GET_INFERRED_TYPE(node->conditional.condition)),
                          node->source_line);
     }
 }
