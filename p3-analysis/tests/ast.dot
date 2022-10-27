@@ -1,7 +1,7 @@
 digraph AST {
 2 [shape=box, label="Block\nsymbolTable: (empty)"];
-1 [shape=box, label="FuncDecl name='main'\nsymbolTable: (empty)"];
+1 [shape=box, label="FuncDecl name='main'\nsymbolTable: \n  a : int"];
 1 -> 2;
-0 [shape=box, label="Program\nsymbolTable: \n  print_int : (int) -> void\n  print_bool : (bool) -> void\n  print_str : (str) -> void\n  main : () -> void"];
+0 [shape=box, label="Program\nsymbolTable: \n  print_int : (int) -> void\n  print_bool : (bool) -> void\n  print_str : (str) -> void\n  main : (int) -> int"];
 0 -> 1;
 }

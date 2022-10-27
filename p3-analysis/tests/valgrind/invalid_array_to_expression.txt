@@ -1,20 +1,20 @@
-==1131449== Memcheck, a memory error detector
-==1131449== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==1131449== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
-==1131449== Command: ../decaf inputs/invalid_array_to_expression.decaf
-==1131449== 
+==1140083== Memcheck, a memory error detector
+==1140083== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1140083== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==1140083== Command: ../decaf inputs/invalid_array_to_expression.decaf
+==1140083== 
 Array 'a' accessed without index on line 4
 Type mismatch: bool expected but str found on line 4
 Type mismatch: int expected but bool found on line 4
 Type mismatch: int expected but str found on line 4
 Type mismatch: bool expected but int found on line 4
 Type mismatch: bool expected but int found on line 4
-==1131449== 
-==1131449== HEAP SUMMARY:
-==1131449==     in use at exit: 0 bytes in 0 blocks
-==1131449==   total heap usage: 1,906 allocs, 1,906 frees, 241,392 bytes allocated
-==1131449== 
-==1131449== All heap blocks were freed -- no leaks are possible
-==1131449== 
-==1131449== For lists of detected and suppressed errors, rerun with: -s
-==1131449== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==1140083== 
+==1140083== HEAP SUMMARY:
+==1140083==     in use at exit: 0 bytes in 0 blocks
+==1140083==   total heap usage: 1,906 allocs, 1,906 frees, 241,392 bytes allocated
+==1140083== 
+==1140083== All heap blocks were freed -- no leaks are possible
+==1140083== 
+==1140083== For lists of detected and suppressed errors, rerun with: -s
+==1140083== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
