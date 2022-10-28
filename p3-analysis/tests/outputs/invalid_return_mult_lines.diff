@@ -1,4 +1,4 @@
---- outputs/invalid_return_mult_lines.txt	2022-10-27 18:46:39.846816851 -0400
+--- outputs/invalid_return_mult_lines.txt	2022-10-28 12:44:34.841144959 -0400
 +++ expected/invalid_return_mult_lines.txt	2022-10-27 17:48:30.743355242 -0400
 @@ -1 +1 @@
 -Type mismatch: int expected but bool found on line 4

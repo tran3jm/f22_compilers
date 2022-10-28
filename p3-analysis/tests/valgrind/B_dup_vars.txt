@@ -1,15 +1,15 @@
-==1785156== Memcheck, a memory error detector
-==1785156== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==1785156== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
-==1785156== Command: ../decaf inputs/dup_var.decaf
-==1785156== 
+==2552674== Memcheck, a memory error detector
+==2552674== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==2552674== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==2552674== Command: ../decaf inputs/dup_var.decaf
+==2552674== 
 Duplicate symbols named 'a' scope on line 1
-==1785156== 
-==1785156== HEAP SUMMARY:
-==1785156==     in use at exit: 0 bytes in 0 blocks
-==1785156==   total heap usage: 1,775 allocs, 1,775 frees, 214,560 bytes allocated
-==1785156== 
-==1785156== All heap blocks were freed -- no leaks are possible
-==1785156== 
-==1785156== For lists of detected and suppressed errors, rerun with: -s
-==1785156== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==2552674== 
+==2552674== HEAP SUMMARY:
+==2552674==     in use at exit: 0 bytes in 0 blocks
+==2552674==   total heap usage: 1,775 allocs, 1,775 frees, 214,560 bytes allocated
+==2552674== 
+==2552674== All heap blocks were freed -- no leaks are possible
+==2552674== 
+==2552674== For lists of detected and suppressed errors, rerun with: -s
+==2552674== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

@@ -18,7 +18,7 @@ invalid_main_type              pass
 invalid_main_parameters        pass
 invalid_return_mult_lines      FAIL (see outputs/invalid_return_mult_lines.diff for details)
 invalid_int_arr_decl           pass
-break_inside_if                FAIL (see outputs/break_inside_if.diff for details)
+break_inside_if                pass
 No memory leak found.
 ========================================
  NOTICE: THIS TESTSUITE IS INCOMPLETE.

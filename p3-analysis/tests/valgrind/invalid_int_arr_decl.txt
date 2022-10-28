@@ -1,15 +1,15 @@
-==1786385== Memcheck, a memory error detector
-==1786385== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==1786385== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
-==1786385== Command: ../decaf inputs/invalid_int_arr_decl.decaf
-==1786385== 
+==2554161== Memcheck, a memory error detector
+==2554161== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==2554161== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==2554161== Command: ../decaf inputs/invalid_int_arr_decl.decaf
+==2554161== 
 Local variable 'a' on line 3 cannot be an array
-==1786385== 
-==1786385== HEAP SUMMARY:
-==1786385==     in use at exit: 0 bytes in 0 blocks
-==1786385==   total heap usage: 1,725 allocs, 1,725 frees, 201,328 bytes allocated
-==1786385== 
-==1786385== All heap blocks were freed -- no leaks are possible
-==1786385== 
-==1786385== For lists of detected and suppressed errors, rerun with: -s
-==1786385== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==2554161== 
+==2554161== HEAP SUMMARY:
+==2554161==     in use at exit: 0 bytes in 0 blocks
+==2554161==   total heap usage: 1,725 allocs, 1,725 frees, 201,328 bytes allocated
+==2554161== 
+==2554161== All heap blocks were freed -- no leaks are possible
+==2554161== 
+==2554161== For lists of detected and suppressed errors, rerun with: -s
+==2554161== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

@@ -15,8 +15,8 @@ void AnalysisVisitor_break_continue_postvisit(NodeVisitor *visitor, ASTNode *nod
 void AnalysisVisitor_conditional_postvisit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_funcdecl_previsit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_funcdecl_postvisit(NodeVisitor *visitor, ASTNode *node);
-void AnalysisVisitor_loop_previsit(NodeVisitor *visitor, ASTNode *node);
-void AnalysisVisitor_loop_postvisit(NodeVisitor *visitor, ASTNode *node);
+void AnalysisVisitor_whileloop_previsit(NodeVisitor *visitor, ASTNode *node);
+void AnalysisVisitor_whileloop_postvisit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_program_postvisit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_block_previsit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_program_previsit(NodeVisitor *visitor, ASTNode *node);
@@ -141,6 +141,7 @@ ErrorList *analyze(ASTNode *tree)
             v->previsit_unaryop = AnalysisVisitor_unaryop_previsit;
             v->previsit_binaryop = AnalysisVisitor_binaryop_previsit;
             v->previsit_funccall = AnalysisVisitor_funccall_previsit;
+            v->previsit_whileloop = AnalysisVisitor_whileloop_previsit;
 
             /* Post visit methods */
             v->postvisit_location = AnalysisVisitor_location_postvisit;
@@ -156,6 +157,7 @@ ErrorList *analyze(ASTNode *tree)
             v->postvisit_binaryop = AnalysisVisitor_binaryop_postvisit;
             v->postvisit_funccall = AnalysisVisitor_funccall_postvisit;
             v->postvisit_block = AnalysisVisitor_block_postvisit;
+            v->postvisit_whileloop = AnalysisVisitor_whileloop_postvisit;
 
             NodeVisitor_traverse(v, tree);
         } else {
@@ -369,7 +371,7 @@ void AnalysisVisitor_funccall_previsit(NodeVisitor *visitor, ASTNode *node)
  * @param vistor Nodevisitor for loop
  * @param node Current node to look at
  */
-void AnalysisVisitor_loop_previsit(NodeVisitor *visitor, ASTNode *node)
+void AnalysisVisitor_whileloop_previsit(NodeVisitor *visitor, ASTNode *node)
 {
     DATA->isInLoop = true;
 }
@@ -635,7 +637,7 @@ void AnalysisVisitor_break_continue_postvisit(NodeVisitor *visitor, ASTNode *nod
 /**
  * @brief Postvisit for function declaration node.
  * 
- * @param vistor wxNode visitor for function calls
+ * @param vistor Node visitor for function calls
  * @param node Current node to look at
  */
 void AnalysisVisitor_funccall_postvisit(NodeVisitor *visitor, ASTNode *node)
@@ -686,7 +688,7 @@ void AnalysisVisitor_funcdecl_postvisit(NodeVisitor *visitor, ASTNode *node)
  * @param vistor Nodevisitor for loop
  * @param node Current node to look at
  */
-void AnalysisVisitor_loop_postvisit(NodeVisitor *visitor, ASTNode *node)
+void AnalysisVisitor_whileloop_postvisit(NodeVisitor *visitor, ASTNode *node)
 {
     DATA->isInLoop = false;
 }
