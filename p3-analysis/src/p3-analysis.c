@@ -41,8 +41,6 @@ typedef struct AnalysisData
     /* BOILERPLATE: TODO: add any new desired state information (and clean it up in AnalysisData_free) */
     char *funcName;
     bool isInLoop;
-    SymbolList* currentSymbolList;
-    int scopeNum;
     bool isInBlock;
 
 } AnalysisData;
@@ -59,8 +57,6 @@ AnalysisData *AnalysisData_new()
     data->errors = ErrorList_new();
     data->funcName = ""; // current function vistor is looking at
     data->isInLoop = false; // checking if visitor is currently lookiong at a loop
-    data->currentSymbolList = NULL; // current list symbols
-    data->scopeNum = 0; // scope for dups
     data->isInBlock = false;
 
     return data;
@@ -199,11 +195,10 @@ bool has_dup_symbol(SymbolList* symbols, char* name) {
 void AnalysisVisitor_program_previsit(NodeVisitor *visitor, ASTNode *node)
 {
     SymbolTable* st = ASTNode_get_attribute(node, "symbolTable");
-    DATA->currentSymbolList = st->local_symbols;
 
     /* check through all global variables to find duplicates */
     FOR_EACH(ASTNode*, v, node->program.variables) {
-        if (has_dup_symbol(DATA->currentSymbolList, v->vardecl.name)) {
+        if (has_dup_symbol(st->local_symbols, v->vardecl.name)) {
             ErrorList_printf(ERROR_LIST, "Duplicate symbols named \'%s\' scope on line %d",
                          v->vardecl.name, node->source_line);
             break;
@@ -212,13 +207,12 @@ void AnalysisVisitor_program_previsit(NodeVisitor *visitor, ASTNode *node)
 
     /* check through all functions to find duplicates */
     FOR_EACH(ASTNode*, f, node->program.functions) {
-        if (has_dup_symbol(DATA->currentSymbolList, f->funcdecl.name)) {
+        if (has_dup_symbol(st->local_symbols, f->funcdecl.name)) {
             ErrorList_printf(ERROR_LIST, "Duplicate symbols named \'%s\' in scope started on line %d",
                          f->funcdecl.name, node->source_line);
             break;
         }
     }
-    DATA->scopeNum = node->source_line;
 }
 
 /**
@@ -232,13 +226,11 @@ void AnalysisVisitor_funcdecl_previsit(NodeVisitor *visitor, ASTNode *node)
     SymbolTable* st = ASTNode_get_attribute(node, "symbolTable");
 
     /* Setting DATA attributes to help during traversal */
-    DATA->scopeNum = node->source_line; // scope of dup
-    DATA->currentSymbolList = st->local_symbols; // current symbols we're looking at
     DATA->funcName = node->funcdecl.name; // current function visitor is in
 
     /* Checks if there is dups in parameters */
     FOR_EACH(Parameter*, p, node->funcdecl.parameters) {
-        if (has_dup_symbol(DATA->currentSymbolList, p->name)) {
+        if (has_dup_symbol(st->local_symbols, p->name)) {
             ErrorList_printf(ERROR_LIST, "Duplicate symbols named \'%s\' scope on line %d",
                          p->name, node->source_line);
             break;
@@ -256,17 +248,15 @@ void AnalysisVisitor_block_previsit(NodeVisitor *visitor, ASTNode *node)
 {
     DATA->isInBlock = true;
     SymbolTable* st = ASTNode_get_attribute(node, "symbolTable");
-    DATA->currentSymbolList = st->local_symbols;
 
     /* check through all variables to find duplicates */
     FOR_EACH(ASTNode*, v, node->block.variables) {
-        if (has_dup_symbol(DATA->currentSymbolList, v->vardecl.name)) {
+        if (has_dup_symbol(st->local_symbols, v->vardecl.name)) {
             ErrorList_printf(ERROR_LIST, "Duplicate symbols named \'%s\' scope on line %d",
                          v->vardecl.name, node->source_line);
             break;
         }
     }
-    DATA->scopeNum = node->source_line;
 }
 
 /**
@@ -283,7 +273,9 @@ void AnalysisVisitor_location_previsit(NodeVisitor *visitor, ASTNode *node)
     if (sym)
     {
         SET_INFERRED_TYPE(sym->type);
-    } else {
+    }
+    else
+    {
         SET_INFERRED_TYPE(UNKNOWN);
     }
 }
