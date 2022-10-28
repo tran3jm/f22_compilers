@@ -18,7 +18,6 @@ void AnalysisVisitor_funcdecl_postvisit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_whileloop_previsit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_whileloop_postvisit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_program_postvisit(NodeVisitor *visitor, ASTNode *node);
-void AnalysisVisitor_block_previsit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_program_previsit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_block_previsit(NodeVisitor *visitor, ASTNode *node);
 void AnalysisVisitor_unaryop_previsit(NodeVisitor *visitor, ASTNode *node);
@@ -284,6 +283,8 @@ void AnalysisVisitor_location_previsit(NodeVisitor *visitor, ASTNode *node)
     if (sym)
     {
         SET_INFERRED_TYPE(sym->type);
+    } else {
+        SET_INFERRED_TYPE(UNKNOWN);
     }
 }
 
@@ -353,10 +354,12 @@ void AnalysisVisitor_funccall_previsit(NodeVisitor *visitor, ASTNode *node)
     /* Checking if function exists in symbol table */
     if (symbol == NULL)
     {
+        SET_INFERRED_TYPE(UNKNOWN);
         ErrorList_printf(ERROR_LIST, "Program does not contain \'%s\' function", node->funccall.name, node->source_line);
     
     /* Checking if trying to call a variable as a function*/
     } else if (symbol != NULL && symbol->symbol_type != FUNCTION_SYMBOL) {
+        SET_INFERRED_TYPE(UNKNOWN);
         ErrorList_printf(ERROR_LIST, "Invalid call to non-function \'%s\' on line %d",
                          node->location.name,
                          node->source_line);
@@ -446,7 +449,7 @@ void AnalysisVisitor_conditional_postvisit(NodeVisitor *visitor, ASTNode *node)
         ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
                          DecafType_to_string(BOOL),
                          DecafType_to_string(GET_INFERRED_TYPE(node->conditional.condition)),
-                         node->source_line);
+                         node->conditional.condition->source_line);
     }
 }
 
@@ -492,7 +495,7 @@ void AnalysisVisitor_assign_postvisit(NodeVisitor *visitor, ASTNode *node)
             ErrorList_printf(ERROR_LIST, "Type mismatch: %s is incompatible with %s on line %d",
                             DecafType_to_string((GET_INFERRED_TYPE(node->assignment.location))),
                             DecafType_to_string((GET_INFERRED_TYPE(node->assignment.value))),
-                            node->source_line);
+                            node->assignment.value->source_line);
         }
     }
 }
@@ -517,7 +520,7 @@ void AnalysisVisitor_binaryop_postvisit(NodeVisitor *visitor, ASTNode *node)
                 ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
                                 DecafType_to_string(BOOL),
                                 DecafType_to_string(GET_INFERRED_TYPE(node->binaryop.left)),
-                                node->source_line);
+                                node->binaryop.left->source_line);
             }
 
             if (GET_INFERRED_TYPE(node->binaryop.right) != BOOL) 
@@ -525,7 +528,7 @@ void AnalysisVisitor_binaryop_postvisit(NodeVisitor *visitor, ASTNode *node)
                 ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
                                 DecafType_to_string(BOOL),
                                 DecafType_to_string(GET_INFERRED_TYPE(node->binaryop.right)),
-                                node->source_line);
+                                node->binaryop.right->source_line);
             }
             break;
 
@@ -551,7 +554,7 @@ void AnalysisVisitor_binaryop_postvisit(NodeVisitor *visitor, ASTNode *node)
                 ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
                                 DecafType_to_string(INT),
                                 DecafType_to_string(GET_INFERRED_TYPE(node->binaryop.left)),
-                                node->source_line);
+                                node->binaryop.left->source_line);
             }
 
             if (GET_INFERRED_TYPE(node->binaryop.right) != INT) 
@@ -559,13 +562,13 @@ void AnalysisVisitor_binaryop_postvisit(NodeVisitor *visitor, ASTNode *node)
                 ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
                                 DecafType_to_string(INT),
                                 DecafType_to_string(GET_INFERRED_TYPE(node->binaryop.right)),
-                                node->source_line);
+                                node->binaryop.right->source_line);
             }
             break;
     }
 }
 /**
- * @brief Postvisit for uanryop node.
+ * @brief Postvisit for unaryop node.
  * 
  * @param vistor Nodevisitor for uanryop
  * @param node Current node to look at
@@ -578,7 +581,7 @@ void AnalysisVisitor_unaryop_postvisit(NodeVisitor *visitor, ASTNode *node)
         ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
                          DecafType_to_string(INT),
                          DecafType_to_string((GET_INFERRED_TYPE(node->unaryop.child))),
-                         node->source_line);
+                         node->unaryop.child->source_line);
     }
  
     /* Checking if child type is bool if unary operator is ! */
@@ -586,7 +589,7 @@ void AnalysisVisitor_unaryop_postvisit(NodeVisitor *visitor, ASTNode *node)
         ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
                          DecafType_to_string(BOOL),
                          DecafType_to_string((GET_INFERRED_TYPE(node->unaryop.child))),
-                         node->source_line);
+                         node->unaryop.child->source_line);
     } 
     
 }
@@ -599,21 +602,24 @@ void AnalysisVisitor_unaryop_postvisit(NodeVisitor *visitor, ASTNode *node)
  */
 void AnalysisVisitor_return_postvisit(NodeVisitor *visitor, ASTNode *node)
 {
-    /* checking if we're currently looking in a function */
-    if (DATA->funcName[0] == '\0')
-    {
-        /* Get type of current function */
-        DecafType func_type = lookup_symbol(node, DATA->funcName)->type; 
-        
-        /* Checking if return value's type matches current functions return type */
-        if (lookup_symbol(node, DATA->funcName)->type != GET_INFERRED_TYPE(node->funcreturn.value))
-        {
-            ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
-                             DecafType_to_string(func_type),
-                             DecafType_to_string(GET_INFERRED_TYPE(node->funcreturn.value)),
-                             node->source_line);
-        }
+    /* Get type of current function */
+    DecafType func_type = lookup_symbol(node, DATA->funcName)->type; 
+    
+    if (lookup_symbol(node, DATA->funcName)->type != VOID && node->funcreturn.value == NULL) {
+        ErrorList_printf(ERROR_LIST, "Invalid void return from non-void function on line %d",
+                            node->source_line);
     }
+    /* Checking if return value's type matches current functions return type */
+    else if (node->funcreturn.value != NULL && GET_INFERRED_TYPE(node->funcreturn.value) != UNKNOWN && 
+        GET_INFERRED_TYPE(node->funcreturn.value) != VOID && 
+        lookup_symbol(node, DATA->funcName)->type != GET_INFERRED_TYPE(node->funcreturn.value))
+    {
+        ErrorList_printf(ERROR_LIST, "Type mismatch: %s expected but %s found on line %d",
+                            DecafType_to_string(func_type),
+                            DecafType_to_string(GET_INFERRED_TYPE(node->funcreturn.value)),
+                            node->funcreturn.value->source_line);
+    }
+    
 }
 
 /**
@@ -656,7 +662,7 @@ void AnalysisVisitor_funccall_postvisit(NodeVisitor *visitor, ASTNode *node)
             if (GET_INFERRED_TYPE(curArg) != curParam->type) {
                 ErrorList_printf(ERROR_LIST, "Type mismatch in parameter %d of call to '%s': expected %s but found %s on line %d"
                     , paramNum, node->funccall.name, DecafType_to_string(curParam->type), 
-                    DecafType_to_string(GET_INFERRED_TYPE(curArg)), node->source_line);
+                    DecafType_to_string(GET_INFERRED_TYPE(curArg)), curArg->source_line);
             }
 
             /* Get next element in the linekd list and update index*/

@@ -1,0 +1,4 @@
+Invalid void return from non-void function on line 2
+Symbol 'a' undefined on line 7
+Symbol 'b' undefined on line 7
+Symbol 'c' undefined on line 8

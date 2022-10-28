@@ -1,8 +1,10 @@
-def void foo() {
+def int foo() {
     return;
 }
 
 def int main()
 {
+    a = b;
+    c = foo();
     return 0;
 }
