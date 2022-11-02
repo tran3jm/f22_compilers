@@ -1,15 +1,15 @@
-==1304367== Memcheck, a memory error detector
-==1304367== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==1304367== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
-==1304367== Command: ../decaf inputs/invalid_main_type.decaf
-==1304367== 
+==2962945== Memcheck, a memory error detector
+==2962945== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==2962945== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==2962945== Command: ../decaf inputs/invalid_main_type.decaf
+==2962945== 
 'main' must return an integer
-==1304367== 
-==1304367== HEAP SUMMARY:
-==1304367==     in use at exit: 0 bytes in 0 blocks
-==1304367==   total heap usage: 1,656 allocs, 1,656 frees, 182,072 bytes allocated
-==1304367== 
-==1304367== All heap blocks were freed -- no leaks are possible
-==1304367== 
-==1304367== For lists of detected and suppressed errors, rerun with: -s
-==1304367== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==2962945== 
+==2962945== HEAP SUMMARY:
+==2962945==     in use at exit: 0 bytes in 0 blocks
+==2962945==   total heap usage: 1,656 allocs, 1,656 frees, 182,056 bytes allocated
+==2962945== 
+==2962945== All heap blocks were freed -- no leaks are possible
+==2962945== 
+==2962945== For lists of detected and suppressed errors, rerun with: -s
+==2962945== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

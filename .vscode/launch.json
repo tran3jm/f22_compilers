@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceRoot}/p3-analysis/decaf",
             "args": [
-                "tests/inputs/undefined_var.decaf"
+                "tests/inputs/test.decaf"
             ],
             "cwd": "${workspaceRoot}/p3-analysis/"
         }

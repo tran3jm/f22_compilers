@@ -1,0 +1,14 @@
+def int main()
+{
+    bool loop;
+    int x;
+    loop = false;
+    x = 0;
+    while (x != 5) {
+        if (x == 3) {
+            break;
+        }
+        x = x + 1;
+    }
+    return x;
+}
