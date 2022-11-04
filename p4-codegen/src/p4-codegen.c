@@ -145,6 +145,46 @@ void CodeGenVisitor_gen_funcdecl (NodeVisitor* visitor, ASTNode* node)
     EMIT0OP(RETURN);
 }
 
+
+void CodeGenVisitor_gen_literal (NodeVisitor* visitor, ASTNode* node)
+{
+    /* Generates reg to r0 */
+    Operand reg = virtual_register();
+
+    /* Setting it to r0 */
+    ASTNode_set_temp_reg(node, reg);
+
+    /* Handles both case */
+    switch (node->literal.type) {
+        case INT: case BOOL:
+            EMIT2OP(LOAD_I, int_const(node->literal.integer), reg);
+            break;
+        case STR:
+            EMIT2OP(LOAD_I, str_const(node->literal.string), reg);
+            break;
+    }
+
+}
+
+void CodeGenVisitor_gen_returnstment (NodeVisitor* visitor, ASTNode* node)
+{
+    ASTNode* return_statement = ASTNode_new(RETURNSTMT, node->source_line);
+    /* Generates return register */
+    Operand return_reg = return_register();
+
+    ASTNode_copy_code(return_statement, node->funcreturn.value);
+    ASTNode_set_temp_reg(node, return_reg);
+
+    switch (node->funcreturn.value->type) {
+        case INT: case BOOL:
+            EMIT2OP(I2I, int_const(return_statement->funcreturn.value), return_reg);
+            break;
+        case STR:
+            EMIT2OP(I2I, str_const(return_statement->funcreturn.value), return_reg);
+            break;
+    }
+}
+
 #endif
 InsnList* generate_code (ASTNode* tree)
 {
