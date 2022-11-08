@@ -1,3 +1,5 @@
+C_arith_bin                    FAIL (see outputs/C_arith_bin.diff for details)
+C_global_assignment            FAIL (see outputs/C_global_assignment.diff for details)
 A_memcheck                     FAIL (see outputs/A_memcheck.diff for details)
 A_print_int                    FAIL (see outputs/A_print_int.diff for details)
 No memory leak found.

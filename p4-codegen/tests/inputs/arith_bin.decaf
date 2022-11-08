@@ -1,7 +1,6 @@
 
 def int main()
 {
-
     int sum;
     int diff;
     int prod;
@@ -11,5 +10,5 @@ def int main()
     diff = 3 - 4;
     prod = 39 * 2;
     quot = 39 / 2;
-    return 0;
+    return sum;
 }

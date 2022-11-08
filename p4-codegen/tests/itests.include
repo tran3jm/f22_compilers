@@ -3,6 +3,8 @@
 #    <TAG>      used as the root for all filenames (i.e., "expected/$TAG.txt")
 #    <ARGS>     command-line arguments to test
 
+run_test    C_arith_bin                 "inputs/arith_bin.decaf"
+run_test    C_global_assignment         "inputs/global_assignment.decaf"
 run_test    A_memcheck                  "inputs/sanity.decaf"
 run_test    A_print_int                 "inputs/print_int.decaf"
 

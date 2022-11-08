@@ -1,0 +1,7 @@
+
+int b;
+def int main()
+{
+    b = 10;
+    return 0;
+}

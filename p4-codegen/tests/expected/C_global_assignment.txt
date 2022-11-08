@@ -2,8 +2,11 @@ main:
   push BP
   i2i SP => BP
   addI SP, 0 => SP
-  loadI 0 => r1
-  i2i r1 => RET
+  loadI 10 => r0
+  loadI 256 => r1
+  storeAI r0 => [r1+0]
+  loadI 0 => r2
+  i2i r2 => RET
   jump l0
 l0:
   i2i BP => SP

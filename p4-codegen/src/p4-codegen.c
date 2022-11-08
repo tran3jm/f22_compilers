@@ -138,16 +138,20 @@ void CodeGenVisitor_gen_funcdecl (NodeVisitor* visitor, ASTNode* node)
     EMIT1OP(LABEL, call_label(node->funcdecl.name));
 
     /* BOILERPLATE: TODO: implement prologue */
-    Operand base = var_base(node, lookup_symbol(node,node->funcdecl.name));
+    Operand base = base_register();
+    Operand stack = stack_register();
 
-    // EMIT1OP(PUSH, var_base(node, lookup_symbol(node,node->funcdecl.name)));
-    // EMIT2OP(I2I, stack_register(), base);
+    EMIT1OP(PUSH, base);
+    EMIT2OP(I2I, stack, base);
+    
 
     /* copy code from body */
     ASTNode_copy_code(node, node->funcdecl.body);
 
     EMIT1OP(LABEL, DATA->current_epilogue_jump_label);
     /* BOILERPLATE: TODO: implement epilogue */
+    EMIT2OP(I2I, base, stack);
+    EMIT1OP(POP, base);
     EMIT0OP(RETURN);
 }
 
@@ -196,7 +200,7 @@ void CodeGenVisitor_gen_returnstment (NodeVisitor* visitor, ASTNode* node)
     EMIT2OP(I2I, reg, return_reg);
 
     /* jump */
-    // EMIT1OP(JUMP, DATA->current_epilogue_jump_label);
+    EMIT1OP(JUMP, DATA->current_epilogue_jump_label);
 }
 
 /**
@@ -210,29 +214,18 @@ void CodeGenVisitor_gen_block (NodeVisitor* visitor, ASTNode* node)
     int stack_space = 0;
 
     // find a more efficient way also this is most likely not right
-    // FOR_EACH(ASTNode*, n, node->block.variables) {
-    //     stack_space -= 8;
-    // }
+    FOR_EACH(ASTNode*, n, node->block.variables) {
+        stack_space -= 8;
+    }
 
     // how much space to allocate
-    // Operand offset = int_const(stack_space);
-    // EMIT3OP(ADD_I, stack_register(), offset, stack_register());
+    Operand offset = int_const(stack_space);
+    EMIT3OP(ADD_I, stack_register(), offset, stack_register());
 
     FOR_EACH(ASTNode*, n, node->block.statements) {
         ASTNode_copy_code(node, n);
     }
 }
-
-// /**
-//  * @brief Post-vistor fpr blocks
-//  * 
-//  * @param vistor Visitor for block
-//  * @param node AST node to emit code into (if needed)
-//  */
-// void CodeGenVisitor_gen_location (NodeVisitor* visitor, ASTNode* node)
-// {
-//     var_base(node, node->location.name);
-// }
 
 /**
  * @brief Post-vistor fpr blocks
@@ -242,11 +235,25 @@ void CodeGenVisitor_gen_block (NodeVisitor* visitor, ASTNode* node)
  */
 void CodeGenVisitor_gen_assignments (NodeVisitor* visitor, ASTNode* node)
 {
+    ASTNode_copy_code(node, node->assignment.value);
     Operand reg = ASTNode_get_temp_reg(node->assignment.value);
     Operand base = var_base(node, lookup_symbol(node, node->assignment.location->location.name));
     Operand stack_offset = var_offset(node, lookup_symbol(node, node->assignment.location->location.name));
     EMIT3OP(STORE_AI, reg, base, stack_offset);
 }
+
+void CodeGenVisitor_gen_location(NodeVisitor* visitor, ASTNode* node) {
+    
+    Operand reg = virtual_register(); 
+    Operand base = var_base(node, lookup_symbol(node, node->location.name));
+    Operand offset = var_offset(node, lookup_symbol(node, node->location.name));
+    
+    ASTNode_set_temp_reg(node, reg);
+    EMIT3OP(LOAD_AI, base, offset, reg);
+
+
+} 
+
 
 /**
  * @brief Helper function for binary operations to reduce code
@@ -268,7 +275,6 @@ void helper_binary_ops(NodeVisitor* visitor, ASTNode* node, ASTNode* left, ASTNo
     /* Adding regs */
     Operand reg = virtual_register();
     ASTNode_set_temp_reg(node, reg);
-
     EMIT3OP(op_instruct, reg_left, reg_right, reg);
 }
 
@@ -344,6 +350,7 @@ void CodeGenVisitor_gen_binary (NodeVisitor* visitor, ASTNode* node) {
         default:
             break;
     }
+    // ASTNode_set_temp_reg(node, virtual_register());
 }
 
 /**
@@ -386,8 +393,9 @@ InsnList* generate_code (ASTNode* tree)
     v->postvisit_return      = CodeGenVisitor_gen_returnstment;
     v->postvisit_block       = CodeGenVisitor_gen_block;
     v->postvisit_binaryop    = CodeGenVisitor_gen_binary;
-    v->postvisit_unaryop    = CodeGenVisitor_gen_unary;
+    v->postvisit_unaryop     = CodeGenVisitor_gen_unary;
     v->postvisit_assignment  = CodeGenVisitor_gen_assignments;
+    v->postvisit_location    = CodeGenVisitor_gen_location;
 
     /* generate code into AST attributes */
     NodeVisitor_traverse_and_free(v, tree);
