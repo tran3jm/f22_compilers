@@ -132,6 +132,23 @@ void CodeGenVisitor_previsit_funcdecl (NodeVisitor* visitor, ASTNode* node)
     DATA->current_epilogue_jump_label = anonymous_label();
 }
 
+void CodeGenVisitor_previsit_while (NodeVisitor* visitor, ASTNode* node)
+{
+    /* generate a label reference for the epilogue that can be used while
+     * generating the rest of the function (e.g., to be used when generating
+     * code for a "return" statement) */
+    DATA->current_epilogue_jump_label = anonymous_label();
+}
+
+
+void CodeGenVisitor_previsit_conditional (NodeVisitor* visitor, ASTNode* node)
+{
+    /* generate a label reference for the epilogue that can be used while
+     * generating the rest of the function (e.g., to be used when generating
+     * code for a "return" statement) */
+    DATA->current_epilogue_jump_label = anonymous_label();
+}
+
 void CodeGenVisitor_gen_funcdecl (NodeVisitor* visitor, ASTNode* node)
 {
     /* every function begins with the corresponding call label */
@@ -243,8 +260,8 @@ void CodeGenVisitor_gen_assignments (NodeVisitor* visitor, ASTNode* node)
 }
 
 void CodeGenVisitor_gen_location(NodeVisitor* visitor, ASTNode* node) {
-    
     Operand reg = virtual_register(); 
+    // Operand reg = ASTNode_get_temp_reg(node->location.name);
     Operand base = var_base(node, lookup_symbol(node, node->location.name));
     Operand offset = var_offset(node, lookup_symbol(node, node->location.name));
     
@@ -371,6 +388,9 @@ void CodeGenVisitor_gen_unary (NodeVisitor* visitor, ASTNode* node) {
             break;
     }
 
+}
+
+void CodeGenVisitor_gen_loop (NodeVisitor* visitor, ASTNode* node) {
 }
 
 #endif
