@@ -140,15 +140,6 @@ void CodeGenVisitor_previsit_while (NodeVisitor* visitor, ASTNode* node)
     DATA->current_epilogue_jump_label = anonymous_label();
 }
 
-
-void CodeGenVisitor_previsit_conditional (NodeVisitor* visitor, ASTNode* node)
-{
-    /* generate a label reference for the epilogue that can be used while
-     * generating the rest of the function (e.g., to be used when generating
-     * code for a "return" statement) */
-    DATA->current_epilogue_jump_label = anonymous_label();
-}
-
 void CodeGenVisitor_gen_funcdecl (NodeVisitor* visitor, ASTNode* node)
 {
     /* every function begins with the corresponding call label */
@@ -161,11 +152,20 @@ void CodeGenVisitor_gen_funcdecl (NodeVisitor* visitor, ASTNode* node)
     EMIT1OP(PUSH, base);
     EMIT2OP(I2I, stack, base);
     
+    int stack_space = 0;
+    // find a more efficient way also this is most likely not right
+    FOR_EACH(ASTNode*, n, node->funcdecl.body->block.variables) {
+        stack_space -= 8;
+    }
+
+    // how much space to allocate
+    Operand offset = int_const(stack_space);
+    EMIT3OP(ADD_I, stack_register(), offset, stack_register());
 
     /* copy code from body */
     ASTNode_copy_code(node, node->funcdecl.body);
-
     EMIT1OP(LABEL, DATA->current_epilogue_jump_label);
+
     /* BOILERPLATE: TODO: implement epilogue */
     EMIT2OP(I2I, base, stack);
     EMIT1OP(POP, base);
@@ -193,6 +193,29 @@ void CodeGenVisitor_gen_literal (NodeVisitor* visitor, ASTNode* node)
             break;
     }
 
+}
+
+/**
+ * @brief Post-vistor for function calls
+ * 
+ * @param vistor Visitor for block
+ * @param node AST node to emit code into (if needed)
+ */
+void CodeGenVisitor_gen_funccall (NodeVisitor* visitor, ASTNode* node) {
+    EMIT1OP(CALL, call_label(node->funcdecl.name));
+    int stack_space = 0;
+
+    FOR_EACH(ASTNode*, n, node->funccall.arguments) {
+        stack_space += 8;
+    }
+
+    Operand offset = int_const(stack_space);
+    EMIT3OP(ADD_I, stack_register(), offset, stack_register());
+
+    Operand return_reg = return_register();
+    Operand reg = virtual_register();
+    EMIT2OP(I2I, return_reg, reg);
+    ASTNode_set_temp_reg(node, reg);
 }
 
 /**
@@ -228,16 +251,6 @@ void CodeGenVisitor_gen_returnstment (NodeVisitor* visitor, ASTNode* node)
  */
 void CodeGenVisitor_gen_block (NodeVisitor* visitor, ASTNode* node)
 {
-    int stack_space = 0;
-
-    // find a more efficient way also this is most likely not right
-    FOR_EACH(ASTNode*, n, node->block.variables) {
-        stack_space -= 8;
-    }
-
-    // how much space to allocate
-    Operand offset = int_const(stack_space);
-    EMIT3OP(ADD_I, stack_register(), offset, stack_register());
 
     FOR_EACH(ASTNode*, n, node->block.statements) {
         ASTNode_copy_code(node, n);
@@ -259,6 +272,12 @@ void CodeGenVisitor_gen_assignments (NodeVisitor* visitor, ASTNode* node)
     EMIT3OP(STORE_AI, reg, base, stack_offset);
 }
 
+/**
+ * @brief Post-vistor for location
+ * 
+ * @param vistor Visitor for block
+ * @param node AST node to emit code into (if needed)
+ */
 void CodeGenVisitor_gen_location(NodeVisitor* visitor, ASTNode* node) {
     Operand reg = virtual_register(); 
     // Operand reg = ASTNode_get_temp_reg(node->location.name);
@@ -390,7 +409,59 @@ void CodeGenVisitor_gen_unary (NodeVisitor* visitor, ASTNode* node) {
 
 }
 
+/**
+ * @brief Post-vistor fpr conditionals 
+ * 
+ * @param vistor Visitor for conditionals
+ * @param node AST node to emit code into (if needed)
+ */
+void CodeGenVisitor_gen_conditional (NodeVisitor* visitor, ASTNode* node) {
+    
+    ASTNode_copy_code(node, node->conditional.condition);
+    Operand reg = ASTNode_get_temp_reg(node->conditional.condition);
+
+    Operand if_label = anonymous_label();
+    Operand post_label = anonymous_label();
+    EMIT3OP(CBR, reg, if_label, post_label);
+    
+
+    if (node->conditional.if_block) {
+        EMIT1OP(LABEL, if_label);
+        ASTNode_copy_code(node, node->conditional.if_block);
+
+    }
+
+    if (node->conditional.else_block) {
+
+         /* copy code from body */
+        Operand temp_label = anonymous_label();
+        EMIT1OP(JUMP, temp_label);
+        EMIT1OP(LABEL, post_label);
+        ASTNode_copy_code(node, node->conditional.else_block);
+        post_label = temp_label;
+        
+    }
+
+    EMIT1OP(LABEL, post_label);
+}
+
+
 void CodeGenVisitor_gen_loop (NodeVisitor* visitor, ASTNode* node) {
+
+    Operand cond_label = anonymous_label();
+    Operand body_label = anonymous_label();
+    Operand post_label = anonymous_label();
+
+    EMIT1OP(LABEL, cond_label);
+    ASTNode_copy_code(node, node->whileloop.condition);
+
+    Operand reg = ASTNode_get_temp_reg(node->whileloop.condition);
+    EMIT3OP(CBR, reg, body_label, post_label);
+
+    EMIT1OP(LABEL, body_label);
+    ASTNode_copy_code(node, node->whileloop.body);
+    EMIT1OP(JUMP, cond_label);
+    EMIT1OP(LABEL, post_label);
 }
 
 #endif
@@ -398,17 +469,18 @@ InsnList* generate_code (ASTNode* tree)
 {
     InsnList* iloc = InsnList_new();
 
-
     NodeVisitor* v = NodeVisitor_new();
     v->data = CodeGenData_new();
     v->dtor = (Destructor)CodeGenData_free;
 
     /* Previsits */
     v->previsit_funcdecl     = CodeGenVisitor_previsit_funcdecl;
+    //v->previsit_whileloop     = CodeGenVisitor_previsit_while;
 
     /* Postvisits*/
     v->postvisit_program     = CodeGenVisitor_gen_program;
     v->postvisit_funcdecl    = CodeGenVisitor_gen_funcdecl;
+    v->postvisit_funccall    = CodeGenVisitor_gen_funccall;
     v->postvisit_literal     = CodeGenVisitor_gen_literal;
     v->postvisit_return      = CodeGenVisitor_gen_returnstment;
     v->postvisit_block       = CodeGenVisitor_gen_block;
@@ -416,14 +488,18 @@ InsnList* generate_code (ASTNode* tree)
     v->postvisit_unaryop     = CodeGenVisitor_gen_unary;
     v->postvisit_assignment  = CodeGenVisitor_gen_assignments;
     v->postvisit_location    = CodeGenVisitor_gen_location;
+    v->postvisit_conditional = CodeGenVisitor_gen_conditional;
+    v->postvisit_whileloop   = CodeGenVisitor_gen_loop;
 
     /* generate code into AST attributes */
-    NodeVisitor_traverse_and_free(v, tree);
+    if (tree) {
+        NodeVisitor_traverse_and_free(v, tree);
 
-    /* copy generated code into new list (the AST may be deallocated before
-     * the ILOC code is needed) */
-    FOR_EACH(ILOCInsn*, i, (InsnList*)ASTNode_get_attribute(tree, "code")) {
-        InsnList_add(iloc, ILOCInsn_copy(i));
+        /* copy generated code into new list (the AST may be deallocated before
+        * the ILOC code is needed) */
+        FOR_EACH(ILOCInsn*, i, (InsnList*)ASTNode_get_attribute(tree, "code")) {
+            InsnList_add(iloc, ILOCInsn_copy(i));
+        }
     }
     return iloc;
 }
