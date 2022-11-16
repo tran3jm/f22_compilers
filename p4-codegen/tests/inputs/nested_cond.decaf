@@ -1,0 +1,15 @@
+
+def int main()
+{
+    int i;
+    i = 0;
+    if (i < 2)
+    {
+        i = 1 + i;
+        if (i < 1) {
+            i = i - 1;
+        }
+ 
+    }
+    return 5;
+}
