@@ -203,6 +203,11 @@ void CodeGenVisitor_gen_literal (NodeVisitor* visitor, ASTNode* node)
 
 }
 
+/**
+ * @brief Helper method for print functional call
+ * 
+ * @param node AST node to emit code into (if needed)
+ */
 void print_helper(ASTNode* node) {
 
     /* defintely theres gotta be something better than this please hahahha */
