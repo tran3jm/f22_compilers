@@ -2,16 +2,12 @@ main:
   push BP
   i2i SP => BP
   addI SP, 0 => SP
-  loadI 7 => r0
-  push r0
-  call print_int
-  addI SP, 8 => SP
-  i2i RET => r1
-  loadI 0 => r2
-  i2i r2 => RET
+  print ""
+  loadI 0 => r1
+  i2i r1 => RET
   jump l0
 l0:
   i2i BP => SP
   pop BP
   return
-ERROR: No call target found for 'print_int'
+RETURN VALUE = 0

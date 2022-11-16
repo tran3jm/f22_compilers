@@ -18,6 +18,8 @@ typedef struct CodeGenData
 
     /* add any new desired state information (and clean it up in CodeGenData_free) */
     Operand current_loop_jump_label;
+    Operand body_loop_jump_label;
+    Operand post_loop_jump_label;
 
 } CodeGenData;
 
@@ -31,6 +33,9 @@ CodeGenData* CodeGenData_new ()
     CodeGenData* data = (CodeGenData*)calloc(1, sizeof(CodeGenData));
     CHECK_MALLOC_PTR(data);
     data->current_epilogue_jump_label = empty_operand();
+    data->current_loop_jump_label = empty_operand();
+    data->body_loop_jump_label = empty_operand();
+    data->post_loop_jump_label = empty_operand();
     return data;
 }
 
@@ -139,6 +144,8 @@ void CodeGenVisitor_previsit_loop (NodeVisitor* visitor, ASTNode* node)
      * generating the rest of the function (e.g., to be used when generating
      * code for a "return" statement) */
     DATA->current_loop_jump_label = anonymous_label();
+    DATA->body_loop_jump_label = anonymous_label();
+    DATA->post_loop_jump_label = anonymous_label();
 }
 
 void CodeGenVisitor_gen_funcdecl (NodeVisitor* visitor, ASTNode* node)
@@ -196,6 +203,29 @@ void CodeGenVisitor_gen_literal (NodeVisitor* visitor, ASTNode* node)
 
 }
 
+void print_helper(ASTNode* node) {
+
+    /* defintely theres gotta be something better than this please hahahha */
+    Operand o;
+
+    if (strcmp(node->funccall.name, "str")) {
+
+        FOR_EACH(ASTNode*, n, node->funccall.arguments) {
+            EMIT1OP(PRINT, str_const(n->literal.string));
+         }
+
+    } else if (strcmp(node->funccall.name, "int")) {
+        FOR_EACH(ASTNode*, n, node->funccall.arguments) {
+            ASTNode_copy_code(node, n);
+            o = ASTNode_get_temp_reg(n);
+        }
+        EMIT1OP(PRINT, o);
+    }
+
+
+     
+}
+
 /**
  * @brief Post-vistor for function calls
  * 
@@ -204,28 +234,32 @@ void CodeGenVisitor_gen_literal (NodeVisitor* visitor, ASTNode* node)
  */
 void CodeGenVisitor_gen_funccall (NodeVisitor* visitor, ASTNode* node) {
     
-    int stack_space = 0;
+    if (strstr(node->funccall.name, "print")) {
+        print_helper(node);
 
-    FOR_EACH(ASTNode*, n, node->funccall.arguments) {
-        stack_space += 8;
-        ASTNode_copy_code(node, n);
-    }
+    } else {
+        int stack_space = 0;
 
-    if (stack_space != 0) {
         FOR_EACH(ASTNode*, n, node->funccall.arguments) {
-            Operand reg = ASTNode_get_temp_reg(n);
-            EMIT1OP(PUSH, reg);
+            stack_space += 8;
+            ASTNode_copy_code(node, n);
         }
+
+        if (stack_space != 0) {
+            FOR_EACH(ASTNode*, n, node->funccall.arguments) {
+                Operand reg = ASTNode_get_temp_reg(n);
+                EMIT1OP(PUSH, reg);
+            }
+        }
+        Operand offset = int_const(stack_space);
+        Operand return_reg = return_register();
+        Operand reg = virtual_register();
+
+        EMIT1OP(CALL, call_label(node->funcdecl.name));
+        EMIT3OP(ADD_I, stack_register(), offset, stack_register());
+        EMIT2OP(I2I, return_reg, reg);
+        ASTNode_set_temp_reg(node, reg);
     }
-
-    Operand offset = int_const(stack_space);
-    Operand return_reg = return_register();
-    Operand reg = virtual_register();
-
-    EMIT1OP(CALL, call_label(node->funcdecl.name));
-    EMIT3OP(ADD_I, stack_register(), offset, stack_register());
-    EMIT2OP(I2I, return_reg, reg);
-    ASTNode_set_temp_reg(node, reg);
 }
 
 /**
@@ -487,7 +521,8 @@ void CodeGenVisitor_gen_conditional (NodeVisitor* visitor, ASTNode* node) {
  * @param node AST node to emit code into (if needed)
  */
 void CodeGenVisitor_gen_break (NodeVisitor* visitor, ASTNode* node) {
-    EMIT1OP(JUMP, DATA->current_epilogue_jump_label);
+    EMIT1OP(JUMP, DATA->post_loop_jump_label);
+
 }
 
 /**
@@ -509,11 +544,12 @@ void CodeGenVisitor_gen_continue (NodeVisitor* visitor, ASTNode* node) {
  */
 void CodeGenVisitor_gen_loop (NodeVisitor* visitor, ASTNode* node) {
 
-    Operand body_label = anonymous_label();
-    Operand post_label = anonymous_label();
 
     EMIT1OP(LABEL, DATA->current_loop_jump_label);
     ASTNode_copy_code(node, node->whileloop.condition);
+
+    Operand body_label = DATA->body_loop_jump_label;
+    Operand post_label = DATA->post_loop_jump_label;
 
     Operand reg = ASTNode_get_temp_reg(node->whileloop.condition);
     EMIT3OP(CBR, reg, body_label, post_label);

@@ -1,4 +1,4 @@
---- outputs/C_arith_bin.txt	2022-11-15 20:52:55.860530492 -0500
+--- outputs/C_arith_bin.txt	2022-11-16 12:24:34.201225926 -0500
 +++ expected/C_arith_bin.txt	2022-11-08 11:20:51.136925558 -0500
 @@ -2,24 +2,24 @@
    push BP
