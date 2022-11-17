@@ -1,5 +1,5 @@
---- outputs/C_global_assignment.txt	2022-11-16 12:24:35.409237999 -0500
-+++ expected/C_global_assignment.txt	2022-11-08 11:19:43.116250655 -0500
+--- outputs/C_global_assignment.txt	2022-11-16 21:18:33.566092701 -0500
++++ expected/C_global_assignment.txt	2022-11-08 11:52:50.535967504 -0500
 @@ -2,11 +2,11 @@
    push BP
    i2i SP => BP

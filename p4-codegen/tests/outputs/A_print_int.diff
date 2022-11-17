@@ -1,5 +1,5 @@
---- outputs/A_print_int.txt	2022-11-16 12:24:37.081254709 -0500
-+++ expected/A_print_int.txt	2022-11-02 09:48:04.000000000 -0400
+--- outputs/A_print_int.txt	2022-11-16 21:18:35.258108591 -0500
++++ expected/A_print_int.txt	2022-11-08 11:50:27.626554085 -0500
 @@ -1,13 +1 @@
 -main:
 -  push BP

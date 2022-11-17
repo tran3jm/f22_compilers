@@ -17,11 +17,19 @@ typedef struct CodeGenData
     Operand current_epilogue_jump_label;
 
     /* add any new desired state information (and clean it up in CodeGenData_free) */
+
+    struct LoopNode* cur_loop_info;
+
+} CodeGenData;
+
+struct LoopNode {
     Operand current_loop_jump_label;
     Operand body_loop_jump_label;
     Operand post_loop_jump_label;
-
-} CodeGenData;
+   
+    struct LoopNode* next;
+    struct LoopNode* prev;
+};
 
 /**
  * @brief Allocate memory for code gen data
@@ -32,10 +40,12 @@ CodeGenData* CodeGenData_new ()
 {
     CodeGenData* data = (CodeGenData*)calloc(1, sizeof(CodeGenData));
     CHECK_MALLOC_PTR(data);
+    data->cur_loop_info = (struct LoopNode*)calloc(1, sizeof(struct LoopNode));
+    CHECK_MALLOC_PTR(data->cur_loop_info);
     data->current_epilogue_jump_label = empty_operand();
-    data->current_loop_jump_label = empty_operand();
-    data->body_loop_jump_label = empty_operand();
-    data->post_loop_jump_label = empty_operand();
+    data->cur_loop_info->current_loop_jump_label = empty_operand();
+    data->cur_loop_info->body_loop_jump_label = empty_operand();
+    data->cur_loop_info->post_loop_jump_label = empty_operand();
     return data;
 }
 
@@ -49,6 +59,12 @@ void CodeGenData_free (CodeGenData* data)
     /* free everything in data that is allocated on the heap */
 
     /* free "data" itself */
+    struct LoopNode* current = data->cur_loop_info;
+    while( current != NULL ) {
+        struct LoopNode* next_node = current->next;
+        free(current);
+        current = next_node;
+    }
     free(data);
 }
 
@@ -143,9 +159,15 @@ void CodeGenVisitor_previsit_loop (NodeVisitor* visitor, ASTNode* node)
     /* generate a label reference for the epilogue that can be used while
      * generating the rest of the function (e.g., to be used when generating
      * code for a "return" statement) */
-    DATA->current_loop_jump_label = anonymous_label();
-    DATA->body_loop_jump_label = anonymous_label();
-    DATA->post_loop_jump_label = anonymous_label();
+    struct LoopNode* new_loop_info = (struct LoopNode*)calloc(1, sizeof(struct LoopNode));
+    new_loop_info->current_loop_jump_label = anonymous_label();
+    new_loop_info->body_loop_jump_label = anonymous_label();
+    new_loop_info->post_loop_jump_label = anonymous_label();
+    new_loop_info->prev = DATA->cur_loop_info;
+
+    DATA->cur_loop_info->next = new_loop_info;
+
+    DATA->cur_loop_info = DATA->cur_loop_info->next;
 }
 
 void CodeGenVisitor_gen_funcdecl (NodeVisitor* visitor, ASTNode* node)
@@ -526,7 +548,7 @@ void CodeGenVisitor_gen_conditional (NodeVisitor* visitor, ASTNode* node) {
  * @param node AST node to emit code into (if needed)
  */
 void CodeGenVisitor_gen_break (NodeVisitor* visitor, ASTNode* node) {
-    EMIT1OP(JUMP, DATA->post_loop_jump_label);
+    EMIT1OP(JUMP, DATA->cur_loop_info->post_loop_jump_label);
 
 }
 
@@ -537,7 +559,7 @@ void CodeGenVisitor_gen_break (NodeVisitor* visitor, ASTNode* node) {
  * @param node AST node to emit code into (if needed)
  */
 void CodeGenVisitor_gen_continue (NodeVisitor* visitor, ASTNode* node) {
-    EMIT1OP(JUMP, DATA->current_loop_jump_label);
+    EMIT1OP(JUMP, DATA->cur_loop_info->current_loop_jump_label);
 }
 
 
@@ -550,19 +572,21 @@ void CodeGenVisitor_gen_continue (NodeVisitor* visitor, ASTNode* node) {
 void CodeGenVisitor_gen_loop (NodeVisitor* visitor, ASTNode* node) {
 
 
-    EMIT1OP(LABEL, DATA->current_loop_jump_label);
+    EMIT1OP(LABEL, DATA->cur_loop_info->current_loop_jump_label);
     ASTNode_copy_code(node, node->whileloop.condition);
 
-    Operand body_label = DATA->body_loop_jump_label;
-    Operand post_label = DATA->post_loop_jump_label;
+    Operand body_label = DATA->cur_loop_info->body_loop_jump_label;
+    Operand post_label = DATA->cur_loop_info->post_loop_jump_label;
 
     Operand reg = ASTNode_get_temp_reg(node->whileloop.condition);
     EMIT3OP(CBR, reg, body_label, post_label);
 
     EMIT1OP(LABEL, body_label);
     ASTNode_copy_code(node, node->whileloop.body);
-    EMIT1OP(JUMP, DATA->current_loop_jump_label);
+    EMIT1OP(JUMP, DATA->cur_loop_info->current_loop_jump_label);
     EMIT1OP(LABEL, post_label);
+
+    DATA->cur_loop_info = DATA->cur_loop_info->prev;
 }
 
 #endif
