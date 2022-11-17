@@ -22,6 +22,7 @@ typedef struct CodeGenData
 
 } CodeGenData;
 
+// This struct is to keep track of loop information at each depth using a linked list
 struct LoopNode {
     Operand current_loop_jump_label;
     Operand body_loop_jump_label;
@@ -43,9 +44,13 @@ CodeGenData* CodeGenData_new ()
     data->cur_loop_info = (struct LoopNode*)calloc(1, sizeof(struct LoopNode));
     CHECK_MALLOC_PTR(data->cur_loop_info);
     data->current_epilogue_jump_label = empty_operand();
+
+    // when outside of a loop, the labels are empty
     data->cur_loop_info->current_loop_jump_label = empty_operand();
     data->cur_loop_info->body_loop_jump_label = empty_operand();
     data->cur_loop_info->post_loop_jump_label = empty_operand();
+    data->cur_loop_info->next = NULL;
+    data->cur_loop_info->prev = NULL;
     return data;
 }
 
@@ -58,13 +63,15 @@ void CodeGenData_free (CodeGenData* data)
 {
     /* free everything in data that is allocated on the heap */
 
-    /* free "data" itself */
+    // free the loop node linked list
     struct LoopNode* current = data->cur_loop_info;
-    while( current != NULL ) {
+    while(current != NULL) {
         struct LoopNode* next_node = current->next;
         free(current);
         current = next_node;
     }
+
+    /* free "data" itself */
     free(data);
 }
 
@@ -159,14 +166,21 @@ void CodeGenVisitor_previsit_loop (NodeVisitor* visitor, ASTNode* node)
     /* generate a label reference for the epilogue that can be used while
      * generating the rest of the function (e.g., to be used when generating
      * code for a "return" statement) */
+    // create a new loop node
     struct LoopNode* new_loop_info = (struct LoopNode*)calloc(1, sizeof(struct LoopNode));
     new_loop_info->current_loop_jump_label = anonymous_label();
     new_loop_info->body_loop_jump_label = anonymous_label();
     new_loop_info->post_loop_jump_label = anonymous_label();
+
+    // set the previous node to be the current loop info node from the data struct
     new_loop_info->prev = DATA->cur_loop_info;
 
+    free(DATA->cur_loop_info->next);
+
+    // set the current loop info's next to be the newly created node
     DATA->cur_loop_info->next = new_loop_info;
 
+    // set the current loop info node to be the newly created one
     DATA->cur_loop_info = DATA->cur_loop_info->next;
 }
 
@@ -586,6 +600,12 @@ void CodeGenVisitor_gen_loop (NodeVisitor* visitor, ASTNode* node) {
     EMIT1OP(JUMP, DATA->cur_loop_info->current_loop_jump_label);
     EMIT1OP(LABEL, post_label);
 
+    // Since we are done with this loop, we need to set the current to the previous node
+    // and free the finished loop. To do this, we create a temporary pointer to save
+    // the location of the previous loop node because we won't have access to it after
+    // freeing the current loop node.
+    struct LoopNode* temp = DATA->cur_loop_info->prev;
+    // free(DATA->cur_loop_info);
     DATA->cur_loop_info = DATA->cur_loop_info->prev;
 }
 

@@ -1,4 +1,4 @@
---- outputs/C_global_assignment.txt	2022-11-17 08:17:05.154513162 -0500
+--- outputs/C_global_assignment.txt	2022-11-17 13:28:19.972345047 -0500
 +++ expected/C_global_assignment.txt	2022-11-08 11:52:50.535967504 -0500
 @@ -2,11 +2,11 @@
    push BP
