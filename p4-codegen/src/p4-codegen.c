@@ -606,7 +606,7 @@ void CodeGenVisitor_gen_loop (NodeVisitor* visitor, ASTNode* node) {
     // freeing the current loop node.
     struct LoopNode* temp = DATA->cur_loop_info->prev;
     // free(DATA->cur_loop_info);
-    DATA->cur_loop_info = DATA->cur_loop_info->prev;
+    DATA->cur_loop_info = temp;
 }
 
 #endif
