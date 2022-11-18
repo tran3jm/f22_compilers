@@ -218,6 +218,12 @@ void CodeGenVisitor_gen_funcdecl (NodeVisitor* visitor, ASTNode* node)
     EMIT0OP(RETURN);
 }
 
+/**
+ * @brief Post-vistor for literals
+ * 
+ * @param vistor Visitor for literals
+ * @param node AST node to emit code into (if needed)
+ */
 void CodeGenVisitor_gen_literal (NodeVisitor* visitor, ASTNode* node)
 {
     /* Generates reg to r0 */
@@ -235,7 +241,6 @@ void CodeGenVisitor_gen_literal (NodeVisitor* visitor, ASTNode* node)
             EMIT2OP(LOAD_I, str_const(node->literal.string), reg);
             break;
         case UNKNOWN: case VOID:
-            // ????
             break;
     }
 
@@ -248,25 +253,24 @@ void CodeGenVisitor_gen_literal (NodeVisitor* visitor, ASTNode* node)
  */
 void print_helper(ASTNode* node) {
 
-    /* defintely theres gotta be something better than this please hahahha */
-    Operand o;
-
+    /* Handling printing strings */
     if (strcmp(node->funccall.name, "str")) {
 
         FOR_EACH(ASTNode*, n, node->funccall.arguments) {
             EMIT1OP(PRINT, str_const(n->literal.string));
          }
 
+    /* Handling printing ints */
     } else if (strcmp(node->funccall.name, "int")) {
+        Operand int_reg;
         FOR_EACH(ASTNode*, n, node->funccall.arguments) {
+
+            /* Storing ints into regs to print */
             ASTNode_copy_code(node, n);
-            o = ASTNode_get_temp_reg(n);
+            int_reg = ASTNode_get_temp_reg(n);
         }
-        EMIT1OP(PRINT, o);
+        EMIT1OP(PRINT, int_reg);
     }
-
-
-     
 }
 
 /**
@@ -277,27 +281,32 @@ void print_helper(ASTNode* node) {
  */
 void CodeGenVisitor_gen_funccall (NodeVisitor* visitor, ASTNode* node) {
     
+    /* Checks if is print_str or print_int */
     if (strstr(node->funccall.name, "print")) {
         print_helper(node);
 
     } else {
         int stack_space = 0;
 
+        /* Moving stack_pointer to accommdate for all arguments */
         FOR_EACH(ASTNode*, n, node->funccall.arguments) {
             stack_space += 8;
             ASTNode_copy_code(node, n);
         }
 
+        /* If contains arguments, need to push args' regs */
         if (stack_space != 0) {
             FOR_EACH(ASTNode*, n, node->funccall.arguments) {
                 Operand reg = ASTNode_get_temp_reg(n);
                 EMIT1OP(PUSH, reg);
             }
         }
+
         Operand offset = int_const(stack_space);
         Operand return_reg = return_register();
         Operand reg = virtual_register();
-
+       
+        /* Funccall epilogue */
         EMIT1OP(CALL, call_label(node->funcdecl.name));
         EMIT3OP(ADD_I, stack_register(), offset, stack_register());
         EMIT2OP(I2I, return_reg, reg);
@@ -317,17 +326,18 @@ void CodeGenVisitor_gen_returnstment (NodeVisitor* visitor, ASTNode* node)
     /* Generates return register */
     Operand return_reg = return_register();
     if (node->funcreturn.value) {
+
         /* Copys code into current node*/
         ASTNode_copy_code(node, node->funcreturn.value);
 
         /* Storing into temp reg */
         Operand reg = ASTNode_get_temp_reg(node->funcreturn.value);
 
-        /* put into return reg */
+        /* Put into return reg */
         EMIT2OP(I2I, reg, return_reg);
     }
 
-    /* jump */
+    /* Jump */
     EMIT1OP(JUMP, DATA->current_epilogue_jump_label);
 }
 
@@ -339,7 +349,7 @@ void CodeGenVisitor_gen_returnstment (NodeVisitor* visitor, ASTNode* node)
  */
 void CodeGenVisitor_gen_block (NodeVisitor* visitor, ASTNode* node)
 {
-
+    /* Copying code of each statement in block */
     FOR_EACH(ASTNode*, n, node->block.statements) {
         ASTNode_copy_code(node, n);
     }
@@ -353,17 +363,29 @@ void CodeGenVisitor_gen_block (NodeVisitor* visitor, ASTNode* node)
  */
 void CodeGenVisitor_gen_assignments (NodeVisitor* visitor, ASTNode* node)
 {
+    /* Var for location symbol to reduce redundant code */
     Symbol* location = lookup_symbol(node, node->assignment.location->location.name);
 
+    /* If location is an array/accessing a certain index */
     if (location->symbol_type == ARRAY_SYMBOL) {
+
+         /* Need to copy index code before value */
         ASTNode_copy_code(node, node->assignment.location->location.index);
         ASTNode_copy_code(node, node->assignment.value);
-        Operand reg = ASTNode_get_temp_reg(node->assignment.value);
-        Operand array_index = ASTNode_get_temp_reg(node->assignment.location->location.index);
-        Operand reg2 = virtual_register();
+
+        /* Obtains value and index registers */
+        Operand value_reg = ASTNode_get_temp_reg(node->assignment.value);
+        Operand array_index_reg = ASTNode_get_temp_reg(node->assignment.location->location.index);
+
+        Operand temp_reg = virtual_register();
+
+        /* Calculates base pointer after copying_code/getting regs */
         Operand base = var_base(node, location);
-        EMIT3OP(MULT_I, array_index, int_const(8), reg2);
-        EMIT3OP(STORE_AO, reg, base, reg2);
+        
+        /* Multiplying by size of pointer (8) */
+        EMIT3OP(MULT_I, array_index_reg, int_const(8), temp_reg);
+        EMIT3OP(STORE_AO, value_reg, base, temp_reg);
+
     } else {
         ASTNode_copy_code(node, node->assignment.value);
         Operand reg = ASTNode_get_temp_reg(node->assignment.value);
@@ -381,13 +403,11 @@ void CodeGenVisitor_gen_assignments (NodeVisitor* visitor, ASTNode* node)
  */
 void CodeGenVisitor_gen_location(NodeVisitor* visitor, ASTNode* node) {
     Operand reg = virtual_register(); 
-    // Operand reg = ASTNode_get_temp_reg(node->location.name);
     Operand base = var_base(node, lookup_symbol(node, node->location.name));
     Operand offset = var_offset(node, lookup_symbol(node, node->location.name));
     
     ASTNode_set_temp_reg(node, reg);
     EMIT3OP(LOAD_AI, base, offset, reg);
-
 } 
 
 
@@ -430,11 +450,14 @@ void helper_mod(NodeVisitor* visitor, ASTNode* node, ASTNode* left, ASTNode* rig
     Operand reg_left = ASTNode_get_temp_reg(left);
     Operand reg_right = ASTNode_get_temp_reg(right);
 
-    /* Adding regs */
+    /* Regs for modulus operations */
     Operand reg = virtual_register();
     Operand reg2 = virtual_register();
     Operand reg3 = virtual_register();
+
     ASTNode_set_temp_reg(node, reg);
+
+    /* Modulus operations */
     EMIT3OP(DIV, reg_left, reg_right, reg);
     EMIT3OP(MULT, reg_right, reg, reg2);
     EMIT3OP(SUB, reg_left, reg2, reg3);
@@ -470,6 +493,7 @@ void helper_unary_ops(NodeVisitor* visitor, ASTNode* node, ASTNode* value, InsnF
  */
 void CodeGenVisitor_gen_binary (NodeVisitor* visitor, ASTNode* node) {
     
+    /* Switch statement for binary operations */
     switch(node->binaryop.operator)
     {
         case OROP:
@@ -513,7 +537,6 @@ void CodeGenVisitor_gen_binary (NodeVisitor* visitor, ASTNode* node) {
         default:
             break;
     }
-    // ASTNode_set_temp_reg(node, virtual_register());
 }
 
 /**
@@ -524,6 +547,7 @@ void CodeGenVisitor_gen_binary (NodeVisitor* visitor, ASTNode* node) {
  */
 void CodeGenVisitor_gen_unary (NodeVisitor* visitor, ASTNode* node) {
 
+    /* Switch statement for unary operations */
     switch(node->unaryop.operator)
     {
         case NEGOP:
@@ -545,27 +569,30 @@ void CodeGenVisitor_gen_conditional (NodeVisitor* visitor, ASTNode* node) {
     
     ASTNode_copy_code(node, node->conditional.condition);
     Operand reg = ASTNode_get_temp_reg(node->conditional.condition);
-
+    
+    /* Presetting current if_label and post_label */
     Operand if_label = anonymous_label();
     Operand post_label = anonymous_label();
     EMIT3OP(CBR, reg, if_label, post_label);
     
-
+    /* Checking if if_block exist (ex. if it's a loop or not) */
     if (node->conditional.if_block) {
         EMIT1OP(LABEL, if_label);
         ASTNode_copy_code(node, node->conditional.if_block);
 
     }
 
+    /* Checking if else_block exist */
     if (node->conditional.else_block) {
 
-         /* copy code from body */
+         /* Will be used to progress label for post label */
         Operand temp_label = anonymous_label();
         EMIT1OP(JUMP, temp_label);
         EMIT1OP(LABEL, post_label);
         ASTNode_copy_code(node, node->conditional.else_block);
+
+        /* Setting new post label */
         post_label = temp_label;
-        
     }
 
     EMIT1OP(LABEL, post_label);
@@ -601,13 +628,15 @@ void CodeGenVisitor_gen_continue (NodeVisitor* visitor, ASTNode* node) {
  */
 void CodeGenVisitor_gen_loop (NodeVisitor* visitor, ASTNode* node) {
 
-
+    /* Copying conditional code and setting label to current loop */
     EMIT1OP(LABEL, DATA->cur_loop_info->current_loop_jump_label);
     ASTNode_copy_code(node, node->whileloop.condition);
 
+    /* Grabbing body label and label after loop */
     Operand body_label = DATA->cur_loop_info->body_loop_jump_label;
     Operand post_label = DATA->cur_loop_info->post_loop_jump_label;
 
+    /* Copying conditional code and setting label to current loop */
     Operand reg = ASTNode_get_temp_reg(node->whileloop.condition);
     EMIT3OP(CBR, reg, body_label, post_label);
 
@@ -620,9 +649,6 @@ void CodeGenVisitor_gen_loop (NodeVisitor* visitor, ASTNode* node) {
     // and free the finished loop. To do this, we create a temporary pointer to save
     // the location of the previous loop node because we won't have access to it after
     // freeing the current loop node.
-    // struct LoopNode* temp = DATA->cur_loop_info->prev;
-    // free(DATA->cur_loop_info);
-    // DATA->cur_loop_info = temp;
     DATA->cur_loop_info = DATA->cur_loop_info->prev;
     free(DATA->cur_loop_info->next);
 }
