@@ -1,0 +1,169 @@
+// CS 432 PROJECT 0: DECAF PROGRAMMING
+//
+
+def int fact(int n)
+{
+    if (n == 1)
+    {
+        return 1;
+    }
+    return n * fact(n-1);
+}
+
+def int fib(int n)
+{
+    if (n <= 2) 
+    {
+        return 1;
+    }
+    return fib(n-1) + fib(n-2);
+}
+
+def bool is_prime(int n)
+{
+    int x;
+    int divisible;
+
+    x = 1;
+    divisible = 0;
+
+    if (n <= 1) 
+    {
+        return false;
+    }
+
+    while (x <= n) 
+    {
+        if (n % x == 0) {
+            divisible = divisible + 1;
+        }
+        x = x + 1;
+    }
+
+    return divisible == 2;
+}
+
+def int gcd(int a, int b)
+{
+    int x;
+    int gcd;
+
+    x = 1;
+    gcd = -1;
+
+    while (x <= a) 
+    {
+        if (a % x == 0 && b % x == 0 && x > gcd) {
+            gcd = x;
+        }
+        x = x + 1;
+    }
+
+    return gcd;
+}
+
+
+int nums[100];
+
+def int sum_nums(int len)
+{
+    int x;
+    int sum;
+    x = 0;
+    sum = 0;
+
+    while (x < len)
+    {
+        sum = sum + nums[x];
+        x = x + 1;
+    }
+
+    return sum;
+}
+
+
+def void sort_nums(int len)
+{
+    int i;
+    int j;
+    int temp;
+    int minimum_index;
+
+    i = 0;
+    j = 0;
+    temp = 0;
+    minimum_index = 0;
+
+    while (i < len) 
+    {
+        j = i + 1;
+        minimum_index = i;
+        while (j < len)
+        {
+            if (nums[minimum_index] > nums[j]) {
+                minimum_index = j;
+            }
+            j = j + 1;
+        }
+        temp = nums[i];
+        nums[i] = nums[minimum_index];
+        nums[minimum_index] = temp;
+
+        i = i + 1;
+    }
+    return;
+}
+
+def void draw_triangle(int base)
+{
+    int temp;
+
+    if (base % 2 == 1) {
+        temp = 1;
+    } else {
+        temp = 2;
+    }
+
+    while (temp <= base) {
+        star_helper(temp, (base - temp) / 2);
+        if (temp != base) {
+            print_str("\n");
+        }
+        temp = temp + 2;
+    }
+
+    return;
+}
+
+// // helper method to print enough stars
+def void star_helper(int x, int space)
+{
+    int i;
+    i = x;
+
+    space_helper(space);
+    while (i > 0) 
+    {
+        print_str("#");
+        i = i - 1;
+    }
+    space_helper(space);
+}
+
+// // helper method to print enough space around stars
+def void space_helper (int space) {
+    int spaces;
+    spaces = space;
+
+    while (spaces > 0) 
+    {
+        print_str(" ");
+        spaces = spaces - 1;
+    }
+}
+
+def int main()
+{
+    return 0;
+}
+

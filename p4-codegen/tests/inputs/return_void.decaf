@@ -1,0 +1,12 @@
+
+
+def void void_func()
+{
+    return;
+}
+
+def int main()
+{
+    return 0;
+}
+

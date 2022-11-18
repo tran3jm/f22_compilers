@@ -316,15 +316,16 @@ void CodeGenVisitor_gen_returnstment (NodeVisitor* visitor, ASTNode* node)
 
     /* Generates return register */
     Operand return_reg = return_register();
+    if (node->funcreturn.value) {
+        /* Copys code into current node*/
+        ASTNode_copy_code(node, node->funcreturn.value);
 
-    /* Copys code into current node*/
-    ASTNode_copy_code(node, node->funcreturn.value);
+        /* Storing into temp reg */
+        Operand reg = ASTNode_get_temp_reg(node->funcreturn.value);
 
-    /* Storing into temp reg */
-    Operand reg = ASTNode_get_temp_reg(node->funcreturn.value);
-
-     /* put into return reg */
-    EMIT2OP(I2I, reg, return_reg);
+        /* put into return reg */
+        EMIT2OP(I2I, reg, return_reg);
+    }
 
     /* jump */
     EMIT1OP(JUMP, DATA->current_epilogue_jump_label);
@@ -352,11 +353,24 @@ void CodeGenVisitor_gen_block (NodeVisitor* visitor, ASTNode* node)
  */
 void CodeGenVisitor_gen_assignments (NodeVisitor* visitor, ASTNode* node)
 {
-    ASTNode_copy_code(node, node->assignment.value);
-    Operand reg = ASTNode_get_temp_reg(node->assignment.value);
-    Operand base = var_base(node, lookup_symbol(node, node->assignment.location->location.name));
-    Operand stack_offset = var_offset(node, lookup_symbol(node, node->assignment.location->location.name));
-    EMIT3OP(STORE_AI, reg, base, stack_offset);
+    Symbol* location = lookup_symbol(node, node->assignment.location->location.name);
+
+    if (location->symbol_type == ARRAY_SYMBOL) {
+        ASTNode_copy_code(node, node->assignment.location->location.index);
+        ASTNode_copy_code(node, node->assignment.value);
+        Operand reg = ASTNode_get_temp_reg(node->assignment.value);
+        Operand array_index = ASTNode_get_temp_reg(node->assignment.location->location.index);
+        Operand reg2 = virtual_register();
+        Operand base = var_base(node, location);
+        EMIT3OP(MULT_I, array_index, int_const(8), reg2);
+        EMIT3OP(STORE_AO, reg, base, reg2);
+    } else {
+        ASTNode_copy_code(node, node->assignment.value);
+        Operand reg = ASTNode_get_temp_reg(node->assignment.value);
+        Operand base = var_base(node, location);
+        Operand stack_offset = var_offset(node, location);
+        EMIT3OP(STORE_AI, reg, base, stack_offset);
+    }
 }
 
 /**

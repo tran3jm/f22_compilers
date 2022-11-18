@@ -1,0 +1,8 @@
+
+int b[5];
+
+def int main()
+{
+    b[0] = 30;
+    return 0;
+}
