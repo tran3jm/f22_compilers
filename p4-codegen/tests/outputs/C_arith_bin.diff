@@ -1,5 +1,5 @@
---- outputs/C_arith_bin.txt	2022-11-17 13:32:25.102704783 -0500
-+++ expected/C_arith_bin.txt	2022-11-08 11:52:50.531967464 -0500
+--- outputs/C_arith_bin.txt	2022-11-18 00:32:30.439406870 -0500
++++ expected/C_arith_bin.txt	2022-11-17 23:32:01.737740687 -0500
 @@ -2,24 +2,24 @@
    push BP
    i2i SP => BP

@@ -19,6 +19,7 @@ typedef struct CodeGenData
     /* add any new desired state information (and clean it up in CodeGenData_free) */
 
     struct LoopNode* cur_loop_info;
+    struct LoopNode* head;
 
 } CodeGenData;
 
@@ -51,6 +52,8 @@ CodeGenData* CodeGenData_new ()
     data->cur_loop_info->post_loop_jump_label = empty_operand();
     data->cur_loop_info->next = NULL;
     data->cur_loop_info->prev = NULL;
+
+    data->head = data->cur_loop_info;
     return data;
 }
 
@@ -64,12 +67,13 @@ void CodeGenData_free (CodeGenData* data)
     /* free everything in data that is allocated on the heap */
 
     // free the loop node linked list
-    struct LoopNode* current = data->cur_loop_info;
-    while(current != NULL) {
-        struct LoopNode* next_node = current->next;
-        free(current);
-        current = next_node;
-    }
+    // struct LoopNode* current = data->head;
+    // while(current != NULL) {
+    //     struct LoopNode* next_node = current->next;
+    //     free(current);
+    //     current = next_node;
+    // }
+    free(data->cur_loop_info);
 
     /* free "data" itself */
     free(data);
@@ -174,8 +178,6 @@ void CodeGenVisitor_previsit_loop (NodeVisitor* visitor, ASTNode* node)
 
     // set the previous node to be the current loop info node from the data struct
     new_loop_info->prev = DATA->cur_loop_info;
-
-    free(DATA->cur_loop_info->next);
 
     // set the current loop info's next to be the newly created node
     DATA->cur_loop_info->next = new_loop_info;
@@ -604,9 +606,11 @@ void CodeGenVisitor_gen_loop (NodeVisitor* visitor, ASTNode* node) {
     // and free the finished loop. To do this, we create a temporary pointer to save
     // the location of the previous loop node because we won't have access to it after
     // freeing the current loop node.
-    struct LoopNode* temp = DATA->cur_loop_info->prev;
+    // struct LoopNode* temp = DATA->cur_loop_info->prev;
     // free(DATA->cur_loop_info);
-    DATA->cur_loop_info = temp;
+    // DATA->cur_loop_info = temp;
+    DATA->cur_loop_info = DATA->cur_loop_info->prev;
+    free(DATA->cur_loop_info->next);
 }
 
 #endif
