@@ -1,0 +1,11 @@
+digraph AST {
+4 [shape=box, label="Literal value=0\ncode: \nloadI 0 => r0\nreg: r0\ntype: int"];
+3 [shape=box, label="Return\ncode: \nloadI 0 => r0\ni2i r0 => RET\njump l0"];
+3 -> 4;
+2 [shape=box, label="Block\ncode: \naddI SP, 0 => SP\nloadI 0 => r0\ni2i r0 => RET\njump l0\nsymbolTable: (empty)"];
+2 -> 3;
+1 [shape=box, label="FuncDecl name='main'\ncode: \nmain:\npush BP\ni2i SP => BP\naddI SP, 0 => SP\nloadI 0 => r0\ni2i r0 => RET\njump l0\nl0:\ni2i BP => SP\npop BP\nreturn\nlocalSize: 0\nsymbolTable: (empty)"];
+1 -> 2;
+0 [shape=box, label="Program\ncode: (...)\nstaticSize: 0\nsymbolTable: \n  print_int : (int) -> void\n  print_bool : (bool) -> void\n  print_str : (str) -> void\n  main : () -> int"];
+0 -> 1;
+}
