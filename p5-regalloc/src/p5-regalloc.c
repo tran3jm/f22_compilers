@@ -82,4 +82,17 @@ void insert_load(int bp_offset, int pr, ILOCInsn* prev_insn)
 
 void allocate_registers (InsnList* list, int num_physical_registers)
 {
+    FOR_EACH(ILOCInsn*, insn, list) 
+    {
+        printf("Handling ");
+        ILOCInsn_print(insn, stdout);
+        printf("\n");
+
+        // TODO: read registers
+
+        Operand write_reg = ILOCInsn_get_write_register(insn);
+        if (write_reg.type == VIRTUAL_REG) {
+            print(" write to register %d\n", write_reg.id);
+        }
+    }
 }
