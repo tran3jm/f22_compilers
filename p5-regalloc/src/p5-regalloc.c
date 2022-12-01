@@ -3,11 +3,17 @@
  * @brief Compiler phase 5: register allocation
  */
 #include "p5-regalloc.h"
+#include <math.h>
 
 /**
  * @brief Maximum number of physical registers
  */
 #define MAX_PHYSICAL_REGS 32
+
+
+int ensure (int vr, int name[], int num_physical_registers);
+int allocate (int vr, int name[], int num_physical_registers);
+float dist (int vr, int name[], int num_physical_registers);
 
 /**
  * @brief Replace a virtual register id with a physical register id
@@ -82,17 +88,102 @@ void insert_load(int bp_offset, int pr, ILOCInsn* prev_insn)
 
 void allocate_registers (InsnList* list, int num_physical_registers)
 {
+    int name[num_physical_registers];
+    memset(name, -1, sizeof(name));
+
     FOR_EACH(ILOCInsn*, insn, list) 
-    {
+    {    
         printf("Handling ");
         ILOCInsn_print(insn, stdout);
         printf("\n");
 
-        // TODO: read registers
+        ILOCInsn* read_regs = ILOCInsn_get_read_registers(insn);
 
+        int pr = -1;
+        int vr = -1;
+
+        for (int i = 0; i < 3; i++) { 
+            if (read_regs->op[i].type == VIRTUAL_REG) {
+
+                vr = read_regs->op[i].id;
+                pr = ensure(vr, name, num_physical_registers);
+                replace_register(vr, pr, insn);
+
+                if (dist(vr, name, num_physical_registers) == INFINITY) {    // if no future use
+                    name[pr] = -1;                                           // then free pr
+                }
+            }
+        }
+
+        ILOCInsn_free(read_regs);
         Operand write_reg = ILOCInsn_get_write_register(insn);
+
         if (write_reg.type == VIRTUAL_REG) {
-            print(" write to register %d\n", write_reg.id);
+            vr = write_reg.id;
+            pr = allocate(vr, name, num_physical_registers);
+            replace_register(vr, pr, insn);
         }
     }
+}
+
+/**
+ * @brief Insert a load instruction to load a spilled register
+ * 
+ * @param bp_offset BP-based offset where the register value is spilled
+ * @param pr Physical register where the value should be loaded
+ * @param prev_insn Reference to an instruction; the new instruction will be
+ * inserted directly after this one
+ */
+int ensure (int vr, int name[], int num_physical_registers) 
+{
+    int pr = -1;
+    for (int i = 0; i < num_physical_registers; i++)
+    {
+       if (name[i] == vr) {
+            return i;
+       }
+    }
+
+    pr = allocate(vr, name, num_physical_registers);
+    return pr;
+}
+
+/**
+ * @brief Allocates virtual register into first empty slot in name
+ * 
+ * @param bp_offset BP-based offset where the register value is spilled
+ * @param pr Physical register where the value should be loaded
+ * @param prev_insn Reference to an instruction; the new instruction will be
+ * inserted directly after this one
+ */
+int allocate (int vr, int name[], int num_physical_registers) 
+{
+    int pr = -1;
+    for (int i = 0; i < num_physical_registers; i++)
+    {
+        if (name[i] == -1) {
+            name[i] = vr;
+            return i;
+        }
+    }
+    return vr;
+}
+
+/**
+ * @brief Insert a load instruction to load a spilled register
+ * 
+ * @param bp_offset BP-based offset where the register value is spilled
+ * @param pr Physical register where the value should be loaded
+ * @param prev_insn Reference to an instruction; the new instruction will be
+ * inserted directly after this one
+ */
+float dist (int vr, int name[], int num_physical_registers) 
+{
+    for (int i = vr + 1; i < num_physical_registers; i++)
+    {
+       if (name[i] == vr) {
+            return i;
+       }
+    }
+    return INFINITY;
 }
