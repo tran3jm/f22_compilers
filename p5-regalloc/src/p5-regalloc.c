@@ -11,9 +11,11 @@
 #define MAX_PHYSICAL_REGS 32
 
 
-int ensure (int vr, int name[], int num_physical_registers);
+int ensure (int vr, int name[], int offset[], int num_physical_registers, ILOCInsn* prev_insn);
 int allocate (int vr, int name[], int num_physical_registers);
-float dist (int vr, int name[], int num_physical_registers);
+float dist (int vr, ILOCInsn* insn);
+void spill (int pr, ILOCInsn* prev_insn, ILOCInsn* local_allocator, int offset[], int name[]);
+
 
 /**
  * @brief Replace a virtual register id with a physical register id
@@ -88,40 +90,65 @@ void insert_load(int bp_offset, int pr, ILOCInsn* prev_insn)
 
 void allocate_registers (InsnList* list, int num_physical_registers)
 {
-    int name[num_physical_registers];
-    memset(name, -1, sizeof(name));
+    if (list) {
+        int name[num_physical_registers];
+        int offset[num_physical_registers];
 
-    FOR_EACH(ILOCInsn*, insn, list) 
-    {    
-        printf("Handling ");
-        ILOCInsn_print(insn, stdout);
-        printf("\n");
+        memset(name, -1, sizeof(name));
+        memset(offset, -1, sizeof(offset));
+        ILOCInsn* stack_alloc_instruct;
+        ILOCInsn* prev_insn;
 
-        ILOCInsn* read_regs = ILOCInsn_get_read_registers(insn);
+        FOR_EACH(ILOCInsn*, insn, list) 
+        {
+            // save reference to stack allocator instruction if i is a call label
+            // reset name[] and offset[] if i is a leader (jump or call target)
+            if (insn->form == LABEL) {
+                if (insn->op[0].type == CALL_LABEL) {
+                    // the third instruct for each function will always be the stack alloc instruction (3 nexts!)
+                    stack_alloc_instruct = insn->next->next->next;
+                }
+                memset(name, -1, sizeof(name));
+                memset(offset, -1, sizeof(offset));
+            }
 
-        int pr = -1;
-        int vr = -1;
+            ILOCInsn* read_regs = ILOCInsn_get_read_registers(insn);
 
-        for (int i = 0; i < 3; i++) { 
-            if (read_regs->op[i].type == VIRTUAL_REG) {
+            int pr = -1;
+            int vr = -1;
 
-                vr = read_regs->op[i].id;
-                pr = ensure(vr, name, num_physical_registers);
-                replace_register(vr, pr, insn);
+            for (int i = 0; i < 3; i++) { 
+                if (read_regs->op[i].type == VIRTUAL_REG) {
 
-                if (dist(vr, name, num_physical_registers) == INFINITY) {    // if no future use
-                    name[pr] = -1;                                           // then free pr
+                    vr = read_regs->op[i].id;
+                    pr = ensure(vr, name, offset, num_physical_registers, prev_insn);
+                    replace_register(vr, pr, insn);
+
+                    if (dist(vr, insn) == INFINITY) {    // if no future use
+                        name[pr] = -1;                   // then free pr
+                    }
                 }
             }
-        }
 
-        ILOCInsn_free(read_regs);
-        Operand write_reg = ILOCInsn_get_write_register(insn);
+            ILOCInsn_free(read_regs);
+            Operand write_reg = ILOCInsn_get_write_register(insn);
 
-        if (write_reg.type == VIRTUAL_REG) {
-            vr = write_reg.id;
-            pr = allocate(vr, name, num_physical_registers);
-            replace_register(vr, pr, insn);
+            if (write_reg.type == VIRTUAL_REG) {
+                vr = write_reg.id;
+                pr = allocate(vr, name, num_physical_registers);
+                replace_register(vr, pr, insn);
+            }
+
+            if (insn->form == CALL) {
+
+                for (int i = 0; i < num_physical_registers; i++)
+                {
+                    if (name[i] != -1) {
+                        spill(i, prev_insn, stack_alloc_instruct, name, offset);
+                    }
+                }
+            }
+            prev_insn = insn;
         }
     }
 }
@@ -134,7 +161,7 @@ void allocate_registers (InsnList* list, int num_physical_registers)
  * @param prev_insn Reference to an instruction; the new instruction will be
  * inserted directly after this one
  */
-int ensure (int vr, int name[], int num_physical_registers) 
+int ensure (int vr, int name[], int offset[], int num_physical_registers, ILOCInsn* prev_insn) 
 {
     int pr = -1;
     for (int i = 0; i < num_physical_registers; i++)
@@ -145,7 +172,10 @@ int ensure (int vr, int name[], int num_physical_registers)
     }
 
     pr = allocate(vr, name, num_physical_registers);
-    return pr;
+    if (offset[vr] != -1) {                         // if vr was spilled, load it
+        insert_load(offset[vr], pr, prev_insn);     // and use it
+    }
+    return pr;                           
 }
 
 /**
@@ -158,7 +188,6 @@ int ensure (int vr, int name[], int num_physical_registers)
  */
 int allocate (int vr, int name[], int num_physical_registers) 
 {
-    int pr = -1;
     for (int i = 0; i < num_physical_registers; i++)
     {
         if (name[i] == -1) {
@@ -166,6 +195,12 @@ int allocate (int vr, int name[], int num_physical_registers)
             return i;
         }
     }
+
+    // TODO:
+    // find pr that maximizes dist(name[pr])   // otherwise, find register to spill
+    // spill(pr)                               // spill value to stack
+    // name[pr] = vr                           // reallocate it
+    // return pr                               // and use it
     return vr;
 }
 
@@ -177,13 +212,41 @@ int allocate (int vr, int name[], int num_physical_registers)
  * @param prev_insn Reference to an instruction; the new instruction will be
  * inserted directly after this one
  */
-float dist (int vr, int name[], int num_physical_registers) 
+float dist (int vr, ILOCInsn* insn) 
 {
-    for (int i = vr + 1; i < num_physical_registers; i++)
+    ILOCInsn* curr = insn->next;
+    int dist = 1;
+
+    while (curr != NULL)
     {
-       if (name[i] == vr) {
-            return i;
-       }
+        for (int i = 0; i < 3; i++) {
+            if (curr->op[i].type != EMPTY) {
+                break;
+            }
+            if (curr->op[i].id == vr) {
+                return dist;
+            }
+        }
+        dist++;
+        curr = curr->next;
     }
     return INFINITY;
+}
+
+
+/**
+ * @brief Spills the register.
+ * 
+ * @param pr Physical register where the value should be loaded
+ * @param prev_insn Reference to an instruction; the new instruction will be
+ * inserted directly after this one
+ * @param local_allocator Reference to an instruction; the new instruction will be
+ * @param offset Offset array
+ * @param name Reference to an instruction; the new instruction will be
+ */
+void spill (int pr, ILOCInsn* prev_insn, ILOCInsn* local_allocator, int offset[], int name[])
+{
+    int x = insert_spill(pr, prev_insn, local_allocator);
+    offset[name[pr]] = x;
+    name[pr] = -1;
 }

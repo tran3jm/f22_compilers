@@ -1,4 +1,4 @@
---- outputs/A_memcheck.txt	2022-12-01 16:39:19.459121078 -0500
+--- outputs/A_memcheck.txt	2022-12-04 17:23:13.022710261 -0500
 +++ expected/A_memcheck.txt	2022-11-20 13:50:39.000000000 -0500
 @@ -1,14 +1,3 @@
 -Handling main:

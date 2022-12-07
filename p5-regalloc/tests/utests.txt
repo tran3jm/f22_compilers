@@ -184,6 +184,5 @@ Handling l1:
 Handling i2i BP => SP
 Handling pop BP
 Handling return
-81%: Checks: 11, Failures: 1, Errors: 1
-public.c:46:F:Public:B_spilled_regs:0: Assertion 'run_program("def int main() { " "  return (((1+2)+(3+4))+((5+6)+(7+8)))+" "         (((1+2)+(3+4))+((5+6)+(7+8))); }") == 72' failed: run_program("def int main() { " "  return (((1+2)+(3+4))+((5+6)+(7+8)))+" "         (((1+2)+(3+4))+((5+6)+(7+8))); }") == -9999, 72 == 72
-private.c:3:E:Private:A_null_insnlist:0: (after this point) Received signal 11 (Segmentation fault)
+90%: Checks: 11, Failures: 0, Errors: 1
+public.c:46:E:Public:B_spilled_regs:0: (after this point) Received signal 11 (Segmentation fault)
